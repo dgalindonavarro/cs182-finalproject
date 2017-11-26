@@ -1,12 +1,24 @@
 import sys, pygame
 from time import sleep
 
-# Placeholders so we can test class
-snakes = [
-    [(1, 1), (1, 2), (1, 3), (1, 4), (1,5)],
-    [(10, 40), (11, 40), (12, 40), (13, 40), (14,40)],
-]
-food = [(5, 3), (49, 51), (53, 24)]
+class State():
+    def __init__( self, prevState = None ):
+
+        if prevState != None:
+            # copy over everything from previous state
+            # 
+            #
+            #
+            #
+            pass 
+
+        # Placeholders so we can test class
+        self.snakes = [
+            [(1, 1), (1, 2), (1, 3), (1, 4), (1,5)],
+            [(10, 40), (11, 40), (12, 40), (13, 40), (14,40)],
+        ]
+        self.food = [(5, 3), (49, 51), (53, 24)]
+
 
 class Game():
 
@@ -19,31 +31,50 @@ class Game():
         self.width = width * self.pixel_size
         self.height = height * self.pixel_size
 
+        # initialize Game State for first time
+        self.state = State( self )
+
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.screen.fill((0, 0, 0))
 
-        # Placeholder to iterate through snake coordinates and fill pixels with white
-        for snake in snakes:
-            for x, y in snake:
-                self.drawPixel(x, y, (0, 255, 0))
-
-        for x, y in food:
-            self.drawPixel(x, y, (255, 0, 0))
-
         # Update screen
         pygame.display.flip()
 
-        # Sleep for 5 seconds so we can see game screen
-        sleep(5)
-
-        return
+        # Run Game
+        self.run()
 
     # Draw a specific "pixel" on the screen
     def drawPixel(self, xcor, ycor, color):
         self.screen.fill(color, (xcor * self.pixel_size, ycor * self.pixel_size, self.pixel_size, self.pixel_size))
         return
 
+    def updateDisplay(self):
+        state = self.state
+
+        # Placeholder to iterate through snake coordinates and fill pixels with white
+        for snake in state.snakes:
+            for x, y in snake:
+                self.drawPixel(x, y, (0, 255, 0))
+
+        for x, y in state.food:
+            self.drawPixel(x, y, (255, 0, 0))
+
+        # Update screen
+        pygame.display.flip()
+
+    def run( self ):
+        """
+        Main control loop for game play.
+        """
+        
+        print(self.state.snakes)
+        self.updateDisplay()
+
+        # Sleep for 5 seconds so we can see game screen
+        sleep(5)
+
+        return
 
 game = Game(50, 50)
 
