@@ -245,7 +245,7 @@ class Game():
         self.screen.fill((0, 0, 0))
 
         # Placeholder to iterate through snake coordinates and fill pixels with white
-         print state.snakes[0].position
+        print state.snakes[0].position
         for snake in state.snakes:
             for x, y in snake.position:
                 if ((x,y) == snake.head):
@@ -272,22 +272,25 @@ class Game():
         (probably will be a while game.state = not_done loop or something)
         """
 
-        for i in xrange(100):
+        # number of timesteps to take
+        for i in xrange(3000):
             #frances' gui saver
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     raise SystemExit
 
             self.updateDisplay()
-            sleep(1)
             for snake in self.state.snakes + self.state.snakes2:
                 snake.move(random.choice(snake.getActions()))
             
             # uncomment for collisions per timestep:
             # print collisionsOnBoard(self.state)
 
+            # delay between timesteps
+            sleep(0.1)
+
         # Sleep for 5 seconds so we can see game screen
-        sleep(1)
+        #sleep(100.0/100.0)
 
         return
 
