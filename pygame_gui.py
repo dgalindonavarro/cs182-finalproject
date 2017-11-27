@@ -65,6 +65,13 @@ def addRandoSnake(width, height, length, state, team = 1):
 
     return new_state
 
+def getActions(game, snake):
+    actions = ["north", "south", "east", "west"]
+
+    
+
+    return actions
+
 
 class Snake():
     def __init__(self):
@@ -123,19 +130,10 @@ class Game():
             print snake.position
 
         # create some random snakes
-        new_state = addRandoSnake(width, height, 5, self.state, 1)
+        new_state = addRandoSnake(width, height, 10, self.state, 1)
         new_state = addRandoSnake(width, height, 5, new_state, 1)
-        self.state = addRandoSnake(width, height, 5, new_state, 2)
+        self.state = addRandoSnake(width, height, 8, new_state, 2)
         
-        print "new: "
-        for snake in self.state.snakes:
-            print "snake1:"
-            print snake.position
-        for snake in self.state.snakes2:
-            print "snake2:"
-            print snake.position
-        
-
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.screen.fill((0, 0, 0))
@@ -158,11 +156,17 @@ class Game():
         print state.snakes[0].position
         for snake in state.snakes:
             for x, y in snake.position:
-                self.drawPixel(x, y, (0, 255, 0))
+                if ((x,y) == snake.head):
+                    self.drawPixel(x, y, (150, 150, 0))   
+                else: 
+                    self.drawPixel(x, y, (0, 255, 0))
 
         for snake in state.snakes2:
             for x, y in snake.position:
-                self.drawPixel(x, y, (0, 60, 255))
+                if ((x,y) == snake.head):
+                    self.drawPixel(x, y, (150, 60, 150))
+                else:
+                    self.drawPixel(x, y, (0, 60, 255))
 
         for x, y in state.food:
             self.drawPixel(x, y, (255, 0, 0))
@@ -172,7 +176,8 @@ class Game():
 
     def run( self ):
         """
-        Main control loop for game play.
+        Main control loop for game play. 
+        (probably will be a while game.state = not_done loop or something)
         """
         
         self.updateDisplay()
