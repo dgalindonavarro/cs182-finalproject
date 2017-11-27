@@ -11,6 +11,7 @@ def addRandoSnake(width, height, length, state, team = 1):
     snek = Snake()
     head = None
 
+    # Get list of positions that are next to or on top of any other snakes as to avoid placing new head there
     taken_positions = []
     list_of_snakes = state.snakes + state.snakes2
 
@@ -27,37 +28,42 @@ def addRandoSnake(width, height, length, state, team = 1):
                 taken_positions.append( (cor[0]+1, cor[1]-1)  )
                 taken_positions.append( (cor[0]+1, cor[1])  )
 
-
+    # Sample head until it is not in a taken position
     head = (int(random.uniform(length, width - length)) , int(random.uniform(length, height - length)))
 
     while(head in taken_positions):
         head = (int(random.uniform(length, width - length)) , int(random.uniform(length, height - length)))
 
-    print head
+    # Add head to snek
     snek.push(head)
 
-    facing = random.choice([1,2,3,4])
-    print facing
+    # Get a random direction for the snek to face
+    facing = random.choice(getDirections())
+
+    # Add rest of snek depending on direction it is facing
     cur = head
-    if facing == 1:
+    if facing == "south":
         for i in range(length - 1):
             cur = (cur[0], cur[1]-1)
-            snek.position.insert(0, cur) 
-    if facing == 2:
+            snek.position.append(cur)
+    if facing == "east":
         for i in range(length - 1):
             cur = (cur[0]-1, cur[1])
-            snek.position.insert(0, cur) 
-    if facing == 3:
+            snek.position.append(cur) 
+    if facing == "north":
         for i in range(length - 1):
             cur = (cur[0], cur[1]+1)
-            snek.position.insert(0, cur)   
-    if facing == 4:
+            snek.position.append(cur)   
+    if facing == "west":
         for i in range(length - 1):
             cur = (cur[0]+1, cur[1])
-            snek.position.insert(0, cur)    
+            snek.position.append(cur)
 
+    # Update properties of snek
+    snek.direction = facing
     snek.length = length
 
+    # Append snek to correct team
     if(team == 2):
         new_state.snakes2.append(snek)
     else:
@@ -65,30 +71,67 @@ def addRandoSnake(width, height, length, state, team = 1):
 
     return new_state
 
-def getActions(game, snake):
-    actions = ["north", "south", "east", "west"]
+def getDirections():
+    directions = ["north", "east", "south", "west"]
 
-    
-
-    return actions
-
+    return directions
 
 class Snake():
     def __init__(self):
         self.position = []
         self.head = None
         self.length = 0
+        self.direction = None
 
+    # Add new coordinate as the new head of snake
     def push(self, new):
         self.position.insert(0, new)
         self.head = new
         
+    # Pop the tail of the snake
     def pop(self):
-        self.position.pop
-            
-        
+        self.position.pop()
 
-class State():
+    # Get the neighboring coordinate of the snake's head based on direction
+    def getNewHeadPos(self, direction):
+        if direction == "north":
+            pos = (self.head[0], self.head[1] - 1)
+        elif direction == "east":
+            pos = (self.head[0] + 1, self.head[1])
+        elif direction =="south":
+            pos = (self.head[0], self.head[1] + 1)
+        else:
+            pos = (self.head[0] - 1, self.head[1])
+
+        return pos
+
+    def getActions(self):
+        actions = ["forward", "left", "right"]
+
+        return actions
+
+    def move(self, action):
+
+        # Pop off the last coordinate in the tail since we are moving
+        ### Later we will have to check if we have eaten food ###
+        self.pop()
+
+        # Update snake's direction based on the action
+        directions = getDirections()
+        if action == "left" and self.direction != "north":
+            self.direction = directions[directions.index(self.direction) - 1]
+        elif action == "left":
+            self.direction = "west"
+        elif action == "right" and self.direction != "west":
+            self.direction = directions[directions.index(self.direction) + 1]
+        elif action == "right":
+            self.direction = "north"
+
+        # Push new head onto snake in the correct direction
+        self.push(self.getNewHeadPos(self.direction))
+
+
+class GameState():
     def __init__( self, prevState = None ):
 
         #if prevState != None:
@@ -102,7 +145,7 @@ class State():
 
     # for duplicating the state (in case dicts become part of a State object)
     def deepCopy( self ):
-        state = State( self )
+        state = GameState( self )
         state.food = self.food
         state.snakes = self.snakes
         state.snakes2 = self.snakes2
@@ -121,7 +164,7 @@ class Game():
         self.height = height * self.pixel_size
 
         # initialize Game State for first time
-        self.state = State( self )
+        self.state = GameState()
 
         print "original state: "
         for snake in self.state.snakes:
@@ -152,6 +195,8 @@ class Game():
     def updateDisplay(self):
         state = self.state
 
+        self.screen.fill((0, 0, 0))
+
         # Placeholder to iterate through snake coordinates and fill pixels with white
         print state.snakes[0].position
         for snake in state.snakes:
@@ -179,11 +224,13 @@ class Game():
         Main control loop for game play. 
         (probably will be a while game.state = not_done loop or something)
         """
-        
-        self.updateDisplay()
-
+        for i in xrange(10):
+            self.updateDisplay()
+            sleep(1)
+            for snake in self.state.snakes + self.state.snakes2:
+                snake.move(random.choice(snake.getActions()))
         # Sleep for 5 seconds so we can see game screen
-        sleep(5)
+        sleep(1)
 
         return
 
