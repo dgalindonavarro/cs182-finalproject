@@ -76,6 +76,53 @@ def getDirections():
 
     return directions
 
+# more miscellaneous functions to be put in the right place later
+# these are to test snake collisions
+
+# returns a list of snakes to remove, and from what position to delete it, or None if no collision
+# we should have snake IDs
+# the second item in the tuple is from what index to delete the snake, -1 means the whole thing
+def collision(snake1, snake2, sameTeam, state):
+    if sameTeam:
+        if snake1.head == snake2.head:
+            return [(snake1, 0), (snake2, 0)]
+        elif snake1.head in snake2.position:
+            return [(snake2, snake2.position.index(snake1.head))]
+        elif snake2.head in snake1.position:
+            return [(snake1, snake1.position.index(snake2.head))]
+        else:
+            return None
+    else:
+        if snake1.head == snake2.head:
+            return [(snake1, -1), (snake2, -1)]
+        elif snake1.head in snake2.position:
+            return [(snake1, -1)]
+        elif snake2.head in snake1.position:
+            return [(snake2, -1)]
+        else:
+            return None
+
+def collisionsOnBoard(state):
+    collisions = []
+    for i in range(len(state.snakes)):
+        for j in range(len(state.snakes)):
+            if i != j:
+                foo = collision(state.snakes[i], state.snakes[j], True, state)
+                if foo != None:
+                    collisions.append(foo)
+        for j in range(len(state.snakes2)):
+            foo = collision(state.snakes[i], state.snakes2[j], False, state)
+            if foo != None:
+                collisions.append(foo)
+
+    for i in range(len(state.snakes2)):
+        for j in range(len(state.snakes2)):
+            if i != j:
+                foo = collision(state.snakes2[i], state.snakes2[j], True, state)
+                if foo != None:
+                    collisions.append(foo)
+    return collisions
+
 class Snake():
     def __init__(self):
         self.position = []
@@ -198,7 +245,7 @@ class Game():
         self.screen.fill((0, 0, 0))
 
         # Placeholder to iterate through snake coordinates and fill pixels with white
-        print state.snakes[0].position
+         print state.snakes[0].position
         for snake in state.snakes:
             for x, y in snake.position:
                 if ((x,y) == snake.head):
@@ -224,11 +271,21 @@ class Game():
         Main control loop for game play. 
         (probably will be a while game.state = not_done loop or something)
         """
-        for i in xrange(10):
+
+        for i in xrange(100):
+            #frances' gui saver
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    raise SystemExit
+
             self.updateDisplay()
             sleep(1)
             for snake in self.state.snakes + self.state.snakes2:
                 snake.move(random.choice(snake.getActions()))
+            
+            # uncomment for collisions per timestep:
+            # print collisionsOnBoard(self.state)
+
         # Sleep for 5 seconds so we can see game screen
         sleep(1)
 
