@@ -1,202 +1,12 @@
 import sys, pygame, util, random
+from GameState import GameState
+from Snake import Snake
 from time import sleep
 
 # misc. functions (not sure where these make most sense to eventually place)
 
-# Add a snake in a random place to begin which does not conflict with current environment objects, to the Game State.
-# Returns a new Game State
-
-def addRandoSnake(width, height, length, state, team = 1):
-    new_state = state.deepCopy()
-    snek = Snake()
-    head = None
-
-    # Get list of positions that are next to or on top of any other snakes as to avoid placing new head there
-    taken_positions = []
-    list_of_snakes = state.snakes + state.snakes2
-
-    for snake in list_of_snakes:
-        for cor in snake.position:
-            taken_positions.append(cor)
-            if cor:
-                taken_positions.append( (cor[0]+1, cor[1]+1)  )
-                taken_positions.append( (cor[0], cor[1]+1)  )
-                taken_positions.append( (cor[0]-1, cor[1]+1)  )
-                taken_positions.append( (cor[0]-1, cor[1])  )
-                taken_positions.append( (cor[0]-1, cor[1]-1)  )
-                taken_positions.append( (cor[0], cor[1]-1)  )
-                taken_positions.append( (cor[0]+1, cor[1]-1)  )
-                taken_positions.append( (cor[0]+1, cor[1])  )
-
-    # Sample head until it is not in a taken position
-    head = (int(random.uniform(length, width - length)) , int(random.uniform(length, height - length)))
-
-    while(head in taken_positions):
-        head = (int(random.uniform(length, width - length)) , int(random.uniform(length, height - length)))
-
-    # Add head to snek
-    snek.push(head)
-
-    # Get a random direction for the snek to face
-    facing = random.choice(getDirections())
-
-    # Add rest of snek depending on direction it is facing
-    cur = head
-    if facing == "south":
-        for i in range(length - 1):
-            cur = (cur[0], cur[1]-1)
-            snek.position.append(cur)
-    if facing == "east":
-        for i in range(length - 1):
-            cur = (cur[0]-1, cur[1])
-            snek.position.append(cur) 
-    if facing == "north":
-        for i in range(length - 1):
-            cur = (cur[0], cur[1]+1)
-            snek.position.append(cur)   
-    if facing == "west":
-        for i in range(length - 1):
-            cur = (cur[0]+1, cur[1])
-            snek.position.append(cur)
-
-    # Update properties of snek
-    snek.direction = facing
-    snek.length = length
-
-    # Append snek to correct team
-    if(team == 2):
-        new_state.snakes2.append(snek)
-    else:
-        new_state.snakes.append(snek)
-
-    return new_state
-
-def getDirections():
-    directions = ["north", "east", "south", "west"]
-
-    return directions
-
 # more miscellaneous functions to be put in the right place later
 # these are to test snake collisions
-
-# returns a list of snakes to remove, and from what position to delete it, or None if no collision
-# we should have snake IDs
-# the second item in the tuple is from what index to delete the snake, -1 means the whole thing
-def collision(snake1, snake2, sameTeam, state):
-    if sameTeam:
-        if snake1.head == snake2.head:
-            return [(snake1, 0), (snake2, 0)]
-        elif snake1.head in snake2.position:
-            return [(snake2, snake2.position.index(snake1.head))]
-        elif snake2.head in snake1.position:
-            return [(snake1, snake1.position.index(snake2.head))]
-        else:
-            return None
-    else:
-        if snake1.head == snake2.head:
-            return [(snake1, -1), (snake2, -1)]
-        elif snake1.head in snake2.position:
-            return [(snake1, -1)]
-        elif snake2.head in snake1.position:
-            return [(snake2, -1)]
-        else:
-            return None
-
-def collisionsOnBoard(state):
-    collisions = []
-    for i in range(len(state.snakes)):
-        for j in range(len(state.snakes)):
-            if i != j:
-                foo = collision(state.snakes[i], state.snakes[j], True, state)
-                if foo != None:
-                    collisions.append(foo)
-        for j in range(len(state.snakes2)):
-            foo = collision(state.snakes[i], state.snakes2[j], False, state)
-            if foo != None:
-                collisions.append(foo)
-
-    for i in range(len(state.snakes2)):
-        for j in range(len(state.snakes2)):
-            if i != j:
-                foo = collision(state.snakes2[i], state.snakes2[j], True, state)
-                if foo != None:
-                    collisions.append(foo)
-    return collisions
-
-class Snake():
-    def __init__(self):
-        self.position = []
-        self.head = None
-        self.length = 0
-        self.direction = None
-
-    # Add new coordinate as the new head of snake
-    def push(self, new):
-        self.position.insert(0, new)
-        self.head = new
-        
-    # Pop the tail of the snake
-    def pop(self):
-        self.position.pop()
-
-    # Get the neighboring coordinate of the snake's head based on direction
-    def getNewHeadPos(self, direction):
-        if direction == "north":
-            pos = (self.head[0], self.head[1] - 1)
-        elif direction == "east":
-            pos = (self.head[0] + 1, self.head[1])
-        elif direction =="south":
-            pos = (self.head[0], self.head[1] + 1)
-        else:
-            pos = (self.head[0] - 1, self.head[1])
-
-        return pos
-
-    def getActions(self):
-        actions = ["forward", "left", "right"]
-
-        return actions
-
-    def move(self, action):
-
-        # Pop off the last coordinate in the tail since we are moving
-        ### Later we will have to check if we have eaten food ###
-        self.pop()
-
-        # Update snake's direction based on the action
-        directions = getDirections()
-        if action == "left" and self.direction != "north":
-            self.direction = directions[directions.index(self.direction) - 1]
-        elif action == "left":
-            self.direction = "west"
-        elif action == "right" and self.direction != "west":
-            self.direction = directions[directions.index(self.direction) + 1]
-        elif action == "right":
-            self.direction = "north"
-
-        # Push new head onto snake in the correct direction
-        self.push(self.getNewHeadPos(self.direction))
-
-
-class GameState():
-    def __init__( self, prevState = None ):
-
-        #if prevState != None:
-        #    # copy over everything from previous state
-        #    pass 
-
-        # Placeholders so we can test class
-        self.snakes = []
-        self.snakes2 = []
-        self.food = [(5, 3), (49, 51), (53, 24)]
-
-    # for duplicating the state (in case dicts become part of a State object)
-    def deepCopy( self ):
-        state = GameState( self )
-        state.food = self.food
-        state.snakes = self.snakes
-        state.snakes2 = self.snakes2
-        return state
 
 
 class Game():
@@ -210,19 +20,21 @@ class Game():
         self.width = width * self.pixel_size
         self.height = height * self.pixel_size
 
-        # initialize Game State for first time
-        self.state = GameState()
+        team_colors = [(0, 255, 0), (66,238,244)]
 
-        print "original state: "
-        for snake in self.state.snakes:
-            print snake.position
-        for snake in self.state.snakes2:
-            print snake.position
+        # initialize Game State for first time
+        self.state = GameState(2, team_colors)
+
+        # print "original state: "
+        # for snake in self.state.snakes:
+        #     print snake.position
+        # for snake in self.state.snakes2:
+        #     print snake.position
 
         # create some random snakes
-        new_state = addRandoSnake(width, height, 10, self.state, 1)
-        new_state = addRandoSnake(width, height, 5, new_state, 1)
-        self.state = addRandoSnake(width, height, 8, new_state, 2)
+        self.state.addRandoSnake(width, height, 10, 0)
+        self.state.addRandoSnake(width, height, 5, 0)
+        self.state.addRandoSnake(width, height, 8, 1)
         
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -245,20 +57,16 @@ class Game():
         self.screen.fill((0, 0, 0))
 
         # Placeholder to iterate through snake coordinates and fill pixels with white
-        print state.snakes[0].position
-        for snake in state.snakes:
-            for x, y in snake.position:
-                if ((x,y) == snake.head):
-                    self.drawPixel(x, y, (150, 150, 0))   
-                else: 
-                    self.drawPixel(x, y, (0, 255, 0))
+        # print state.snakes[0].position
 
-        for snake in state.snakes2:
-            for x, y in snake.position:
-                if ((x,y) == snake.head):
-                    self.drawPixel(x, y, (150, 60, 150))
-                else:
-                    self.drawPixel(x, y, (0, 60, 255))
+        for team in state.teams:
+            for snake in team.snakes:
+                for x, y in snake.position:
+                    if ((x,y) == snake.head):
+                        tail_color = (team.color[0] / 2, team.color[1] / 2, team.color[2] / 2)
+                        self.drawPixel(x, y, tail_color)   
+                    else: 
+                        self.drawPixel(x, y, team.color)
 
         for x, y in state.food:
             self.drawPixel(x, y, (255, 0, 0))
@@ -280,11 +88,13 @@ class Game():
                     raise SystemExit
 
             self.updateDisplay()
-            for snake in self.state.snakes + self.state.snakes2:
-                snake.move(random.choice(snake.getActions()))
+            for team in self.state.teams:
+                for snake in team.snakes:
+                    snake.move(random.choice(snake.getActions()))
+
+            self.state.update()
             
             # uncomment for collisions per timestep:
-            # print collisionsOnBoard(self.state)
 
             # delay between timesteps
             sleep(0.1)
