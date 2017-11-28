@@ -3,7 +3,7 @@ from Snake import Snake
 from Team import Team
 
 class GameState():
-    def __init__( self, num_teams, team_colors):
+    def __init__( self, num_teams, team_colors, width, height, obstacles=[]):
 
         #if prevState != None:
         #    # copy over everything from previous state
@@ -15,7 +15,13 @@ class GameState():
         self.teams = []
         for i in xrange(num_teams):
             self.teams.append(Team(i, team_colors[i]))
-        self.food = [(5, 3), (49, 51), (53, 24)]
+        self.food = []
+
+        self.legalPositions = []
+        for i in xrange(width):
+            for j in xrange(height):
+                if (i, j) not in obstacles:
+                    self.legalPositions.append((i, j))
 
     # for duplicating the state (in case dicts become part of a State object)
     def deepCopy( self ):
@@ -26,9 +32,26 @@ class GameState():
         state.teams = self.teams
         return state
 
+    # Set snake position list to empty
+    def updateSnake(self, team_id, snake_id, index):
+        ### Maybe add an is Dead check to other functions later? ###
+        self.teams[team_id].updateSnake(snake_id, index)
+
     # Update and check collisions
     def update(self):
+        collisions = self.collisionsOnBoard()
+        for collision in collisions:
+            self.updateSnake(*collision)
+        self.addRandoFood()
 
+    def addRandoFood(self):
+        possible = [x for x in self.legalPositions if x not in self.food]
+        for team in self.teams:
+            for snake in team.snakes:
+                possible = [x for x in possible if x not in snake.position]            
+        food = random.choice(possible)
+        self.food.append(food)
+                
 
     # Add a snake in a random place to begin which does not conflict with current environment objects, to the Game State.
     # Returns a new Game State
@@ -99,7 +122,7 @@ class GameState():
     # returns a list of snakes to remove, and from what position to delete it, or None if no collision
     # we should have snake IDs
     # the second item in the tuple is from what index to delete the snake, -1 means the whole thing
-    def collision(snake1_id, team1_id, snake2_id, team2_id):
+    def snakeCollision(self, snake1_id, team1_id, snake2_id, team2_id):
 
         ### ADD COLLISION CHECKING WITH SELF ###
 
@@ -107,14 +130,20 @@ class GameState():
         snake2 = self.teams[team2_id].snakes[snake2_id]        
 
         if team1_id == team2_id:
-            if snake1.head == snake2.head:
-                return [(team1_id, snake1_id, 0), (team2_id, snake2_id, 0)]
-            elif snake1.head in snake2.position:
-                return [(team2_id, snake2_id, snake2.position.index(snake1.head))]
-            elif snake2.head in snake1.position:
-                return [(team1_id, snake1_id, snake1.position.index(snake2.head))]
+            if snake1_id == snake2_id:
+                if snake1.head in snake1.position[1:]:
+                    return [(team1_id, snake1_id, -1)]
+                else:
+                    return []
             else:
-                return None
+                if snake1.head == snake2.head:
+                    return [(team1_id, snake1_id, 0), (team2_id, snake2_id, 0)]
+                elif snake1.head in snake2.position:
+                    return [(team2_id, snake2_id, snake2.position.index(snake1.head))]
+                elif snake2.head in snake1.position:
+                    return [(team1_id, snake1_id, snake1.position.index(snake2.head))]
+                else:
+                    return []
         else:
             if snake1.head == snake2.head:
                 return [(team1_id, snake1_id, -1), (team2_id, snake2_id, -1)]
@@ -123,39 +152,26 @@ class GameState():
             elif snake2.head in snake1.position:
                 return [(team2_id, snake2_id, -1)]
             else:
-                return None
+                return []
 
-    def collisionsOnBoard(state):
+    def boardCollision(self, snake_id, team_id):
+        snake = self.teams[team_id].snakes[snake_id]
+        if snake.head not in self.legalPositions:
+            return [(team_id, snake_id, -1)]
+        else:
+            return []
+
+    def collisionsOnBoard(self):
         collisions = []
 
-        for i in xrange(len(state.teams)):
-            for j in xrange(len(state.teams[i].snakes)):
-                for k in xrange(i, len(state.teams)):
+        for i in xrange(len(self.teams)):
+            for j in xrange(len(self.teams[i].snakes)):
+                collisions += self.boardCollision(j, i)
+                for k in xrange(i, len(self.teams)):
                     start_index = 0
                     if i == k:
                         start_index = j
-                    for l in xrange(start_index, len(state.teams[k].snakes)):
-                        foo = collision(j, i, l, k)
-                        if foo != None:
-                            collisions.append(foo)
+                    for l in xrange(start_index, len(self.teams[k].snakes)):
+                        collisions += self.snakeCollision(j, i, l, k)
 
-
-
-        # for i in range(len(state.snakes)):
-        #     for j in range(len(state.snakes)):
-        #         if i != j:
-        #             foo = collision(state.snakes[i], state.snakes[j], True, state)
-        #             if foo != None:
-        #                 collisions.append(foo)
-        #     for j in range(len(state.snakes2)):
-        #         foo = collision(state.snakes[i], state.snakes2[j], False, state)
-        #         if foo != None:
-        #             collisions.append(foo)
-
-        # for i in range(len(state.snakes2)):
-        #     for j in range(len(state.snakes2)):
-        #         if i != j:
-        #             foo = collision(state.snakes2[i], state.snakes2[j], True, state)
-        #             if foo != None:
-        #                 collisions.append(foo)
         return collisions

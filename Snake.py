@@ -1,6 +1,6 @@
 class Snake():
     def __init__(self, id, team_id):
-        self.id
+        self.id = id
         self.position = []
         self.head = None
         self.length = 0
@@ -58,3 +58,19 @@ class Snake():
 
         # Push new head onto snake in the correct direction
         self.push(self.getNewHeadPos(self.direction))
+
+    def updateSnake(self, index):
+        if index == -1:
+            self.die()
+        else:
+            self.position = self.position[:index + 1]
+            self.length = len(self.position)
+
+    def die(self):
+        self.position = []
+        self.head = None
+        self.length = 0
+        self.direction = None
+
+    def isAlive(self):
+        return self.length != 0

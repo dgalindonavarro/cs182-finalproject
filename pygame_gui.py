@@ -23,7 +23,7 @@ class Game():
         team_colors = [(0, 255, 0), (66,238,244)]
 
         # initialize Game State for first time
-        self.state = GameState(2, team_colors)
+        self.state = GameState(2, team_colors, width, height)
 
         # print "original state: "
         # for snake in self.state.snakes:
@@ -34,7 +34,7 @@ class Game():
         # create some random snakes
         self.state.addRandoSnake(width, height, 10, 0)
         self.state.addRandoSnake(width, height, 5, 0)
-        self.state.addRandoSnake(width, height, 8, 1)
+        self.state.addRandoSnake(width, height, 8, 0)
         
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -51,6 +51,27 @@ class Game():
         self.screen.fill(color, (xcor * self.pixel_size, ycor * self.pixel_size, self.pixel_size, self.pixel_size))
         return
 
+    def drawApple(self, xcor, ycor):
+        apple = pygame.image.load("images/apple.png")
+        apple = pygame.transform.scale(apple, (self.pixel_size, self.pixel_size))
+        self.screen.blit(apple, (xcor * self.pixel_size, ycor * self.pixel_size, self.pixel_size, self.pixel_size))
+
+    def drawEyes(self, x, y, direction):
+        eyes = pygame.image.load("images/eyes2.png")
+        eyes = pygame.transform.scale(eyes, (self.pixel_size, self.pixel_size))
+        eyes = pygame.transform.rotate(eyes, self.directionToAngle(direction))
+        self.screen.blit(eyes, (x * self.pixel_size, y * self.pixel_size, self.pixel_size, self.pixel_size))
+
+    def directionToAngle(self, direction):
+        if direction == "north":
+            return 180
+        elif direction == "east":
+            return 90
+        elif direction == "west":
+            return 270
+        else:
+            return 0
+
     def updateDisplay(self):
         state = self.state
 
@@ -63,13 +84,15 @@ class Game():
             for snake in team.snakes:
                 for x, y in snake.position:
                     if ((x,y) == snake.head):
-                        tail_color = (team.color[0] / 2, team.color[1] / 2, team.color[2] / 2)
-                        self.drawPixel(x, y, tail_color)   
+                        head_color = (team.color[0] / 2, team.color[1] / 2, team.color[2] / 2)
+                        self.drawPixel(x, y, head_color) 
+                        self.drawEyes(x, y, snake.direction)
                     else: 
                         self.drawPixel(x, y, team.color)
 
         for x, y in state.food:
-            self.drawPixel(x, y, (255, 0, 0))
+            # self.drawPixel(x, y, (255, 0, 0))
+            self.drawApple(x, y)
 
         # Update screen
         pygame.display.flip()
@@ -90,17 +113,17 @@ class Game():
             self.updateDisplay()
             for team in self.state.teams:
                 for snake in team.snakes:
-                    snake.move(random.choice(snake.getActions()))
+                    if snake.isAlive():
+                        # snake.move(random.choice(snake.getActions()))
+                        snake.move("forward")
 
             self.state.update()
+            for team in self.state.teams:
+                print team.getScore()
             
-            # uncomment for collisions per timestep:
 
             # delay between timesteps
-            sleep(0.1)
-
-        # Sleep for 5 seconds so we can see game screen
-        #sleep(100.0/100.0)
+            sleep(0.2)
 
         return
 
