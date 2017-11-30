@@ -69,6 +69,15 @@ class Game():
         else:
             return 0
 
+    # Update score
+    def updateScore(self):
+        for i in xrange(len(self.state.teams)):
+            white = (255, 255, 255)
+            message = "Team " + str(i + 1) + ": " + str(self.state.teams[i].getScore())
+            font = pygame.font.Font(None, 20)
+            text = font.render(message, 1, white)
+            self.screen.blit(text, ((i * 80) + 10,0))
+
     # Update the game screen based on the current game state
     def updateDisplay(self):
         state = self.state
@@ -91,6 +100,9 @@ class Game():
         for x, y in state.food:
             self.drawApple(x, y)
 
+        # Update score
+        self.updateScore()
+        
         # Update screen
         pygame.display.flip()
 
