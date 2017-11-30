@@ -29,16 +29,18 @@ class Snake():
 
         return pos
 
+    # Return list of directions
     def getDirections(self):
         directions = ["north", "east", "south", "west"]
-
         return directions
 
+    # Return list of actions
     def getActions(self):
         actions = ["forward", "left", "right"]
 
         return actions
 
+    # Move the snake based on its current direction and given action
     def move(self, action):
 
         # Pop off the last coordinate in the tail since we are moving
@@ -59,6 +61,7 @@ class Snake():
         # Push new head onto snake in the correct direction
         self.push(self.getNewHeadPos(self.direction))
 
+    # Update the snake based on index to cut off
     def updateSnake(self, index):
         if index == -1:
             self.die()
@@ -66,12 +69,14 @@ class Snake():
             self.position = self.position[:index + 1]
             self.length = len(self.position)
 
+    # Empty the snake's position and reset all values
     def die(self):
         self.position = []
         self.head = None
         self.length = 0
         self.direction = None
 
+    # Return whether or not the snake is alive
     def isAlive(self):
         return self.length != 0
 

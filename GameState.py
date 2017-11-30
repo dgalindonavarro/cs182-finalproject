@@ -5,18 +5,16 @@ from Team import Team
 class GameState():
     def __init__( self, num_teams, team_colors, width, height, obstacles=[]):
 
-        #if prevState != None:
-        #    # copy over everything from previous state
-        #    pass 
-
-        # Placeholders so we can test class
-        # self.snakes = []
-        # self.snakes2 = []
+        # Create specified number of teams and assign colors
         self.teams = []
         for i in xrange(num_teams):
             self.teams.append(Team(i, team_colors[i]))
+
+        # Create list of food positions
         self.food = []
 
+        # Add all positions on the board that are not part of obstacles to the
+        # legal positions for snakes
         self.legalPositions = []
         for i in xrange(width):
             for j in xrange(height):
@@ -32,7 +30,7 @@ class GameState():
         state.teams = self.teams
         return state
 
-    # Set snake position list to empty
+    # Update snake position list based on index
     def updateSnake(self, team_id, snake_id, index):
         ### Maybe add an is Dead check to other functions later? ###
         self.teams[team_id].updateSnake(snake_id, index)
@@ -40,11 +38,16 @@ class GameState():
     # Update and check collisions
     def update(self):
         collisions = self.collisionsOnBoard()
+
+        # Iterate through snakes with collisions and update each one
         for collision in collisions:
             self.updateSnake(*collision)
         self.snakesEating()
+
+        ### For now, this adds food every time step ###
         self.addRandoFood()
 
+    # Add a food item anywhere on the board that isn't going to be taken
     def addRandoFood(self):
         possible = [x for x in self.legalPositions if x not in self.food]
         for team in self.teams:
@@ -55,7 +58,6 @@ class GameState():
                 
 
     # Add a snake in a random place to begin which does not conflict with current environment objects, to the Game State.
-    # Returns a new Game State
 
     def addRandoSnake(self, width, height, length, team_id):
         # Get index of snake
@@ -120,48 +122,62 @@ class GameState():
         # Append snek to correct team
         self.teams[team_id].snakes.append(snek)
 
-    # returns a list of snakes to remove, and from what position to delete it, or None if no collision
-    # we should have snake IDs
-    # the second item in the tuple is from what index to delete the snake, -1 means the whole thing
+    # returns a list of snakes to remove, and from what position to delete it
+    # the third item in the tuple is from what index to delete the snake, -1 means the whole thing
     def snakeCollision(self, snake1_id, team1_id, snake2_id, team2_id):
-
-        ### ADD COLLISION CHECKING WITH SELF ###
 
         snake1 = self.teams[team1_id].snakes[snake1_id]
         snake2 = self.teams[team2_id].snakes[snake2_id]        
 
+        # If on the same team
         if team1_id == team2_id:
+            # If the same snake
             if snake1_id == snake2_id:
+                # If snake has crashed into itself, snake should die
                 if snake1.head in snake1.position[1:]:
                     return [(team1_id, snake1_id, -1)]
+                # Otherwise, no collision
                 else:
                     return []
+            # If different snake on the same team
             else:
+                # If head to head collision, both snakes retain only their heads
                 if snake1.head == snake2.head:
                     return [(team1_id, snake1_id, 0), (team2_id, snake2_id, 0)]
+                # If one snake has crashed into the other's tail, cut off tail
                 elif snake1.head in snake2.position:
                     return [(team2_id, snake2_id, snake2.position.index(snake1.head))]
                 elif snake2.head in snake1.position:
                     return [(team1_id, snake1_id, snake1.position.index(snake2.head))]
+                # No collision
                 else:
                     return []
+        # If different teams
         else:
+            # If head to head collision, both snakes die
             if snake1.head == snake2.head:
                 return [(team1_id, snake1_id, -1), (team2_id, snake2_id, -1)]
+            # Otherwise, snake that crashed into the other's tail will die
             elif snake1.head in snake2.position:
                 return [(team1_id, snake1_id, -1)]
             elif snake2.head in snake1.position:
                 return [(team2_id, snake2_id, -1)]
+            # No collision
             else:
                 return []
 
+    # Check if snake has crashed into any walls or obstacles
     def boardCollision(self, snake_id, team_id):
         snake = self.teams[team_id].snakes[snake_id]
+
+        # If snake has crashed into a wall, snake dies
         if snake.head not in self.legalPositions:
             return [(team_id, snake_id, -1)]
         else:
             return []
 
+    # Iterate through all pairs of snakes to check if there were any collisions
+    # Return list of snakes with collisions
     def collisionsOnBoard(self):
         collisions = []
 
