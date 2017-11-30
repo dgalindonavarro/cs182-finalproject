@@ -42,6 +42,8 @@ class GameState():
         # Iterate through snakes with collisions and update each one
         for collision in collisions:
             self.updateSnake(*collision)
+
+        # Check if snakes are eating food in this timestep
         self.snakesEating()
 
         ### For now, this adds food every time step ###
@@ -193,6 +195,7 @@ class GameState():
 
         return collisions
 
+    # Checks if snake tails are over food, has snakes eat the food and removes the food from the board
     def snakesEating(self):
         for i in xrange(len(self.teams)):
             for j in xrange(len(self.teams[i].snakes)):

@@ -80,9 +80,12 @@ class Snake():
     def isAlive(self):
         return self.length != 0
 
+    # adds to the tail of a snake when it passes over food
     def eat(self):
         tail = self.position[-1]
         new_tail = (0, 0)
+
+        # corner case for only head existing, uses direction to get new tail location
         if self.length == 1:
             direction = self.direction
             if direction == "north":
@@ -94,6 +97,7 @@ class Snake():
             elif direction == "west":
                 new_tail = (tail[0] + 1, tail[1])
         else:
+            # Extend the vector from the tail to the second to last part of the snake, to the new tail
             second_toLastTail = self.position[-2]
             new_tail = (tail[0] - (second_toLastTail[0] - tail[0]), tail[1] - (second_toLastTail[1] - tail[1]))
         self.position.append(new_tail)
