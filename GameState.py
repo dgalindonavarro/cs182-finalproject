@@ -42,6 +42,7 @@ class GameState():
         collisions = self.collisionsOnBoard()
         for collision in collisions:
             self.updateSnake(*collision)
+        self.snakesEating()
         self.addRandoFood()
 
     def addRandoFood(self):
@@ -175,3 +176,12 @@ class GameState():
                         collisions += self.snakeCollision(j, i, l, k)
 
         return collisions
+
+    def snakesEating(self):
+        for i in xrange(len(self.teams)):
+            for j in xrange(len(self.teams[i].snakes)):
+                if self.teams[i].snakes[j].isAlive():
+                    tail = self.teams[i].snakes[j].position[-1]
+                    if tail in self.food:
+                        self.teams[i].snakes[j].eat()
+                        self.food.remove(tail)

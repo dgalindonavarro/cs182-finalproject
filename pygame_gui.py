@@ -32,9 +32,10 @@ class Game():
         #     print snake.position
 
         # create some random snakes
-        self.state.addRandoSnake(width, height, 10, 0)
         self.state.addRandoSnake(width, height, 5, 0)
-        self.state.addRandoSnake(width, height, 8, 0)
+        self.state.addRandoSnake(width, height, 5, 0)
+        self.state.addRandoSnake(width, height, 5, 1)
+        self.state.addRandoSnake(width, height, 5, 1)
         
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))

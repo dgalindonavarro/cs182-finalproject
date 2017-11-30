@@ -74,3 +74,38 @@ class Snake():
 
     def isAlive(self):
         return self.length != 0
+
+    def eat(self):
+        tail = self.position[-1]
+        new_tail = (0, 0)
+        if self.length == 1:
+            direction = self.direction
+            if direction == "north":
+                new_tail = (tail[0], tail[1] + 1)
+            elif direction == "south":
+                new_tail = (tail[0], tail[1] - 1)
+            elif direction == "east":
+                new_tail = (tail[0] - 1, tail[1])
+            elif direction == "west":
+                new_tail = (tail[0] + 1, tail[1])
+        else:
+            second_toLastTail = self.position[-2]
+            new_tail = (tail[0] - (second_toLastTail[0] - tail[0]), tail[1] - (second_toLastTail[1] - tail[1]))
+        self.position.append(new_tail)
+        self.length += 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
