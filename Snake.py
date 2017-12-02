@@ -6,6 +6,7 @@ class Snake():
         self.length = 0
         self.direction = None
         self.team = team_id
+        self.new_tail = None
 
     # Add new coordinate as the new head of snake
     def push(self, new):
@@ -100,8 +101,14 @@ class Snake():
             # Extend the vector from the tail to the second to last part of the snake, to the new tail
             second_toLastTail = self.position[-2]
             new_tail = (tail[0] - (second_toLastTail[0] - tail[0]), tail[1] - (second_toLastTail[1] - tail[1]))
-        self.position.append(new_tail)
-        self.length += 1
+
+        self.new_tail = new_tail
+
+    def addTail(self):
+        if self.new_tail != None:
+            self.position.append(self.new_tail)
+            self.length += 1
+            self.new_tail = None
 
 
 

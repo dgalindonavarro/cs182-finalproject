@@ -26,6 +26,8 @@ class Game():
         # initialize Game State for first time
         self.state = GameState(2, team_colors, width, height)
 
+        self.loadImages()
+
         # create some random snakes
         self.state.addRandoSnake(width, height, 5, 0)
         self.state.addRandoSnake(width, height, 8, 1)
@@ -40,6 +42,12 @@ class Game():
         # Run Game
         self.run()
 
+    def loadImages(self):
+        self.apple = pygame.image.load("images/apple.png")
+        self.apple = pygame.transform.scale(self.apple, (self.pixel_size, self.pixel_size))
+        self.eyes = pygame.image.load("images/eyes2.png")
+        self.eyes = pygame.transform.scale(self.eyes, (self.pixel_size, self.pixel_size))
+
     # Draw a specific "pixel" on the screen
     def drawPixel(self, xcor, ycor, color):
         self.screen.fill(color, (xcor * self.pixel_size, ycor * self.pixel_size, self.pixel_size, self.pixel_size))
@@ -47,15 +55,13 @@ class Game():
 
     # Draw an apple on the screen
     def drawApple(self, xcor, ycor):
-        apple = pygame.image.load("images/apple.png")
-        apple = pygame.transform.scale(apple, (self.pixel_size, self.pixel_size))
-        self.screen.blit(apple, (xcor * self.pixel_size, ycor * self.pixel_size, self.pixel_size, self.pixel_size))
+        # apple = pygame.image.load("images/apple.png")
+        # apple = pygame.transform.scale(apple, (self.pixel_size, self.pixel_size))
+        self.screen.blit(self.apple, (xcor * self.pixel_size, ycor * self.pixel_size, self.pixel_size, self.pixel_size))
 
     # Draw eyes on snake at correct pixel with correct orientation
     def drawEyes(self, x, y, direction):
-        eyes = pygame.image.load("images/eyes2.png")
-        eyes = pygame.transform.scale(eyes, (self.pixel_size, self.pixel_size))
-        eyes = pygame.transform.rotate(eyes, self.directionToAngle(direction))
+        eyes = pygame.transform.rotate(self.eyes, self.directionToAngle(direction))
         self.screen.blit(eyes, (x * self.pixel_size, y * self.pixel_size, self.pixel_size, self.pixel_size))
 
     # Return the angle that the eyes need to be rotated by based on direction
@@ -127,6 +133,7 @@ class Game():
                 for snake in team.snakes:
                     if snake.isAlive():
                         # snake.move(random.choice(snake.getActions()))
+                        snake.addTail()
                         snake.move("forward")
 
             # Update the game state based on snake movements (check collisions)
@@ -137,11 +144,11 @@ class Game():
                 print team.getScore()
 
             # delay between timesteps
-            sleep(0.2)
+            sleep(0.5)
 
         return
 
-game = Game(50, 50)
+game = Game(30, 30)
 
 ### CODE THAT CAME WITH PYGAME TUTORIAL FOR REFERENCE ###
 
