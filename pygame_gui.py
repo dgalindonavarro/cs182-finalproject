@@ -1,4 +1,4 @@
-import sys, pygame, util, random
+import sys, pygame, util, random, argparse
 from GameState import GameState
 from Snake import Snake
 from time import sleep
@@ -8,11 +8,13 @@ from time import sleep
 # more miscellaneous functions to be put in the right place later
 # these are to test snake collisions
 
+# How to Call pygame_gui.py: (for now. this is a stupid way)
+# >>> python pygame_gui.py [# of teams] [snakes per team] [game speed in seconds] ... to be determined[]
 
 class Game():
 
     # Initialize the game screen
-    def __init__(self, width, height, pixel_size=10):
+    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, pixel_size=10):
         pygame.init()
 
         # Setup dimensions of game
@@ -21,17 +23,19 @@ class Game():
         self.height = height * self.pixel_size
 
         # Hard coded color scheme for now
-        team_colors = [(0, 255, 0), (66,238,244)]
+        team_colors = [(0, 255, 0), (66,238,244), (189, 77, 219)]
 
         # initialize Game State for first time
-        self.state = GameState(2, team_colors, width, height)
+        self.state = GameState(int(teams), team_colors, width, height)
+        self.game_over = False
 
         self.loadImages()
 
         # create some random snakes
-        self.state.addRandoSnake(width, height, 5, 0)
-        self.state.addRandoSnake(width, height, 8, 1)
-        
+        for team in xrange(int(teams)):
+            for snake in xrange(int(snakes)):
+                self.state.addRandoSnake(width, height, 5, team)
+            
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.screen.fill((0, 0, 0))
@@ -40,7 +44,7 @@ class Game():
         pygame.display.flip()
 
         # Run Game
-        self.run()
+        self.run(float(speed))
 
     def loadImages(self):
         self.apple = pygame.image.load("images/apple.png")
@@ -110,14 +114,42 @@ class Game():
         # Update screen
         pygame.display.flip()
 
-    def run( self ):
+    def gameOver(self):
+        # check if one team has no snakes
+        # if one has no snakes, update game over parameter of Game
+        for team in self.state.teams:
+            teamalive = False
+            for snake in team.snakes:
+                teamalive = snake.isAlive() or teamalive
+            if not teamalive:
+                self.game_over = True
+
+        return
+
+    # return the a tuple of string, score, of the team with the highest score. If a tie, return tie.
+    def getWinner(self):
+        maxScore = 0
+        winner = None
+
+        for team in self.state.teams:
+            score = team.getScore()
+            if score > maxScore:
+                maxScore = score
+                winner = str(team.id)
+            elif score == maxScore:
+                winner = "Tie"
+
+        return winner, maxScore        
+
+    def run( self, speed ):
         """
         Main control loop for game play. 
         (probably will be a while game.state = not_done loop or something)
         """
 
         # number of timesteps to take
-        for i in xrange(3000):
+        
+        while not self.game_over:
             #frances' gui saver
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -136,17 +168,35 @@ class Game():
 
             # Update the game state based on snake movements (check collisions)
             self.state.update()
+            # check if one team has been eliminated
+            self.gameOver()
 
             # Update each teams' score
             for team in self.state.teams:
-                print team.getScore()
-
+                #print team.getScore()
+                pass
             # delay between timesteps
-            sleep(0.5)
+            sleep(speed)
 
+        # Game is Over. Display game over graphic that makes the player sad
+
+        print "Game Over! Sad!"
+        print ""
+        winner = self.getWinner()
+        print("Winner: Team " + winner[0])
+        print("Score: " + str(winner[1])) 
         return
 
-game = Game(30, 30)
+if len(sys.argv) == 1:
+    game = Game(30, 30)
+elif len(sys.argv) == 2:
+    print sys.argv[1]
+    game = Game(30, 30, sys.argv[1])
+elif len(sys.argv) == 3:
+    game = Game(30, 30, sys.argv[1], sys.argv[2])
+elif len(sys.argv) == 4:
+    game = Game(30, 30, sys.argv[1], sys.argv[2], sys.argv[3])
+
 
 ### CODE THAT CAME WITH PYGAME TUTORIAL FOR REFERENCE ###
 
