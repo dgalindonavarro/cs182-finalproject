@@ -55,8 +55,6 @@ class Game():
 
     # Draw an apple on the screen
     def drawApple(self, xcor, ycor):
-        # apple = pygame.image.load("images/apple.png")
-        # apple = pygame.transform.scale(apple, (self.pixel_size, self.pixel_size))
         self.screen.blit(self.apple, (xcor * self.pixel_size, ycor * self.pixel_size, self.pixel_size, self.pixel_size))
 
     # Draw eyes on snake at correct pixel with correct orientation
@@ -132,9 +130,9 @@ class Game():
             for team in self.state.teams:
                 for snake in team.snakes:
                     if snake.isAlive():
-                        # snake.move(random.choice(snake.getActions()))
                         snake.addTail()
-                        snake.move("forward")
+                        snake.move(random.choice(snake.getActions()))
+                        # snake.move("forward")
 
             # Update the game state based on snake movements (check collisions)
             self.state.update()
