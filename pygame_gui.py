@@ -99,6 +99,8 @@ class Game():
                         self.drawEyes(x, y, snake.direction)
                     else: 
                         self.drawPixel(x, y, team.color)
+                        if (x,y) in snake.eaten:
+                            self.drawApple(x, y)
 
         # Iterate through food and draw all apples
         for x, y in state.food:
@@ -126,13 +128,16 @@ class Game():
             # Update the game screen
             self.updateDisplay()
 
+            currentState = self.state.deepCopy()
+
             # Iterate through each snake and tell it to move
             for team in self.state.teams:
                 for snake in team.snakes:
                     if snake.isAlive():
-                        snake.addTail()
-                        snake.move(random.choice(snake.getActions()))
+                        snake.move(snake.getAction(currentState))
+                        # snake.move(random.choice(snake.getActions()))
                         # snake.move("forward")
+            # self.state.generateSuccessor(0, 0, "forward")
 
             # Update the game state based on snake movements (check collisions)
             self.state.update()
@@ -142,7 +147,7 @@ class Game():
                 print team.getScore()
 
             # delay between timesteps
-            sleep(0.5)
+            sleep(0.1)
 
         return
 

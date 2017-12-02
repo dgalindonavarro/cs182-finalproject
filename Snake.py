@@ -5,8 +5,9 @@ class Snake():
         self.head = None
         self.length = 0
         self.direction = None
-        self.team = team_id
-        self.new_tail = None
+        self.team_id = team_id
+        self.add_tail = False
+        self.eaten = []
 
     # Add new coordinate as the new head of snake
     def push(self, new):
@@ -44,9 +45,18 @@ class Snake():
     # Move the snake based on its current direction and given action
     def move(self, action):
 
-        # Pop off the last coordinate in the tail since we are moving
-        ### Later we will have to check if we have eaten food ###
-        self.pop()
+        # If it's not time to add to tail, pop tail
+        if not self.add_tail:
+            self.pop()
+        # Otherwise, add the correct eaten apple to tail and update "eaten" list
+        else:
+            self.position.append(self.eaten.pop(0))
+            self.length += 1
+            self.add_tail = False
+
+        # If tail is on an eaten apple, add to tail next timestep
+        if len(self.eaten) > 0 and self.position[-1] == self.eaten[0]:
+            self.add_tail = True
 
         # Update snake's direction based on the action
         directions = self.getDirections()
@@ -74,54 +84,14 @@ class Snake():
     def die(self):
         self.position = []
         self.head = None
-        self.length = 0
         self.direction = None
 
     # Return whether or not the snake is alive
     def isAlive(self):
-        return self.length != 0
+        return self.head != None
 
-    # adds to the tail of a snake when it passes over food
-    def eat(self):
-        tail = self.position[-1]
-        new_tail = (0, 0)
+    # Add apple to "eaten" list
+    def eat(self, food):
+        self.eaten.append(food)
 
-        # corner case for only head existing, uses direction to get new tail location
-        if self.length == 1:
-            direction = self.direction
-            if direction == "north":
-                new_tail = (tail[0], tail[1] + 1)
-            elif direction == "south":
-                new_tail = (tail[0], tail[1] - 1)
-            elif direction == "east":
-                new_tail = (tail[0] - 1, tail[1])
-            elif direction == "west":
-                new_tail = (tail[0] + 1, tail[1])
-        else:
-            # Extend the vector from the tail to the second to last part of the snake, to the new tail
-            second_toLastTail = self.position[-2]
-            new_tail = (tail[0] - (second_toLastTail[0] - tail[0]), tail[1] - (second_toLastTail[1] - tail[1]))
-
-        self.new_tail = new_tail
-
-    def addTail(self):
-        if self.new_tail != None:
-            self.position.append(self.new_tail)
-            self.length += 1
-            self.new_tail = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
