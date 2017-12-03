@@ -1,4 +1,4 @@
-import sys, pygame, util, random, argparse
+import sys, pygame, util, random, argparse, cProfile
 from GameState import GameState
 from Snake import Snake
 from time import sleep
@@ -16,8 +16,9 @@ from time import sleep
 class Game():
 
     # Initialize the game screen
-    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", no_graphics=True, pixel_size=10):
-        pygame.init()
+    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", no_graphics=False, pixel_size=10):
+
+        self.no_graphics = no_graphics == "True"
 
         # Setup dimensions of game
         self.pixel_size = pixel_size
@@ -31,8 +32,6 @@ class Game():
         self.state = GameState(int(teams), team_colors, width, height)
         self.game_over = False
 
-        self.loadImages()
-
         # create some random snakes
         for team in xrange(int(teams)):
             for snake in xrange(int(snakes)):
@@ -42,12 +41,17 @@ class Game():
                     agent_type = agent
                 self.state.addRandoSnake(width, height, 5, team, agent_type)
 
-        # Create the screen with black background
-        self.screen = pygame.display.set_mode((self.width, self.height))
-        self.screen.fill((0, 0, 0))
+        if not self.no_graphics:
+            pygame.init()
 
-        # Update screen
-        pygame.display.flip()
+            self.loadImages()
+
+            # Create the screen with black background
+            self.screen = pygame.display.set_mode((self.width, self.height))
+            self.screen.fill((0, 0, 0))
+
+            # Update screen
+            pygame.display.flip()
 
         # Run Game
         self.run(float(speed))
@@ -158,13 +162,17 @@ class Game():
         # number of timesteps to take
         
         while not self.game_over:
-            #frances' gui saver
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    raise SystemExit
+            if not self.no_graphics:
+                #frances' gui saver
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        raise SystemExit
 
-            # Update the game screen
-            self.updateDisplay()
+                # Update the game screen
+                self.updateDisplay()
+            else:
+                for team in self.state.teams:
+                    print "Team " + str(team.id) + ":", team.getScore()
 
             currentState = self.state.deepCopy()
 
