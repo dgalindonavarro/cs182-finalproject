@@ -281,62 +281,88 @@ class AlphaBetaAgent(Snake):
         return v
                   
 
-# class ExpectimaxAgent(MultiAgentSearchAgent):
-#     """
-#       Your expectimax agent (question 4)
-#     """
+class ExpectimaxAgent(Snake):
+    """
+      Your expectimax agent (question 4)
+    """
 
-#     def getAction(self, gameState):
-#         """
-#           Returns the expectimax action using self.depth and self.evaluationFunction
+    def evaluationFunction(self, gameState):
+        newPos = gameState.teams[self.team_id].snakes[self.id].head
 
-#           All ghosts should be modeled as choosing uniformly at random from their
-#           legal moves.
-#         """
-#         "*** YOUR CODE HERE ***"
-#         def expectimax(state, depth, agentIndex):
-#           if state.isWin() or state.isLose() or (agentIndex == 0 and depth == 0):
-#             return self.evaluationFunction(state)
-#           else:
-#             if agentIndex == 0:
-#               v, action = maxValue(state, depth, agentIndex)
-#               return v
-#             else:
-#               v = expValue(state, depth, agentIndex)
-#               return v
+        if newPos == None:
+          return -sys.maxint - 1
+        # Get current score
+        score = gameState.teams[self.team_id].getScore()
 
-#         def maxValue(state, depth, agentIndex):
-#           v = -sys.maxint - 1
-#           # Loop through all possible legal actions
-#           for index, action in enumerate(state.getLegalActions(agentIndex)):
-#             successorState = state.generateSuccessor(agentIndex, action)
-#             # Get value of successor state
-#             newValue = expectimax(successorState, depth - 1, agentIndex + 1)
-#             # If greater than v, assign to v
-#             if newValue > v:
-#               v = newValue
-#               bestAction = action
-#           # Return v and the associated action
-#           return v, bestAction
+        # Get positions of all food elements
+        foodList = gameState.food
 
-#         def expValue(state, depth, agentIndex):
-#           # Check if next agent is max or min
-#           nextAgent = agentIndex + 1
-#           if nextAgent == state.getNumAgents():
-#             nextAgent = 0
-#           v = 0
-#           actions = state.getLegalActions(agentIndex)
-#           # Probability is uniform across all actions
-#           p = 1.0 / len(actions)
-#           # Loop through all possible legal actions
-#           for index, action in enumerate(actions):
-#             successorState = state.generateSuccessor(agentIndex, action)
-#             v += p * expectimax(successorState, depth, nextAgent)
-#           return v
+        # Initialize distance to closest food
+        foodDistance = 0
 
-#         # Run algorithm starting with max agent
-#         value, action = maxValue(gameState, self.depth, 0)
-#         return action
+        # Iterate over food list to find closest distance to food
+        for index, food in enumerate(foodList):
+          if index == 0:
+            foodDistance = manhattanDistance(newPos, food)
+          else:
+            if manhattanDistance(newPos, food) < foodDistance:
+              foodDistance = manhattanDistance(newPos, food)
+
+        return (score * 100) - foodDistance
+
+    def getAction(self, gameState):
+        """
+          Returns the expectimax action using self.depth and self.evaluationFunction
+
+          All ghosts should be modeled as choosing uniformly at random from their
+          legal moves.
+        """
+        "*** YOUR CODE HERE ***"
+        self.agent_list = [(self.id, self.team_id)]
+        for team in gameState.teams:
+            for snake in team.snakes:
+                if not (snake.id == self.id and team.id == self.team_id):
+                    self.agent_list.append((snake.id, team.id))
+        self.depth = 1 * len(self.agent_list)
+        action = self.value(gameState, 0, 0)
+        return action
+
+    def value(self, state, index, depth):
+        if depth == self.depth or not state.teams[self.agent_list[index][1]].snakes[self.agent_list[index][0]].isAlive():
+            return self.evaluationFunction(state)
+        else:
+            if self.agent_list[index][1] == self.team_id:
+                return self.maxValue(state, index, depth)
+            else:
+                return self.expValue(state, index, depth)
+
+    def maxValue(self, state, index, depth):
+        v = -float("inf") - 1
+        act = None
+        actions = self.getActions()
+        for action in actions:
+            successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
+            newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
+
+            if depth == 0:
+                if v < newVal:
+                    v = newVal
+                    act = action
+            else:
+                v = max(v, newVal)
+        if depth == 0:
+            return act
+        return v
+
+    def expValue(self, state, index, depth):
+        v = 0
+        actions = self.getActions()
+        for action in actions:
+            successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
+            newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
+            p = 1.0 / len(actions)
+            v += newVal * p
+        return v
 
 # def betterEvaluationFunction(currentGameState):
 #     """
