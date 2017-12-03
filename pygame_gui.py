@@ -16,7 +16,7 @@ from time import sleep
 class Game():
 
     # Initialize the game screen
-    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", pixel_size=10):
+    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", no_graphics=True, pixel_size=10):
         pygame.init()
 
         # Setup dimensions of game
@@ -41,11 +41,6 @@ class Game():
                 else:
                     agent_type = agent
                 self.state.addRandoSnake(width, height, 5, team, agent_type)
-
-        # set team 1, snake 1 to be user controlled    
-        # if user == "True":
-        #     self.state.teams[0].snakes[0].user = True
-        #     self.state.teams[0].snakes[0].color = team_colors[3]
 
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -130,12 +125,12 @@ class Game():
     def gameOver(self):
         # check if one team has no snakes
         # if one has no snakes, update game over parameter of Game
+        self.game_over = True
         for team in self.state.teams:
             teamalive = False
             for snake in team.snakes:
                 teamalive = snake.isAlive() or teamalive
-            if not teamalive:
-                self.game_over = True
+            self.game_over = self.game_over and not teamalive
 
         return
 
@@ -178,9 +173,6 @@ class Game():
                 for snake in team.snakes:
                     if snake.isAlive():
                         snake.move(snake.getAction(currentState))
-                        # snake.move(random.choice(snake.getActions()))
-                        # snake.move("forward")
-            # self.state.generateSuccessor(0, 0, "forward")
 
             # Update the game state based on snake movements (check collisions)
             self.state.update()
@@ -203,43 +195,4 @@ class Game():
         return
 
 # Game initializer and Argument Option Parser
-if len(sys.argv) == 1:
-    game = Game(30, 30)
-elif len(sys.argv) == 2:
-    print sys.argv[1]
-    game = Game(30, 30, sys.argv[1])
-elif len(sys.argv) == 3:
-    game = Game(30, 30, sys.argv[1], sys.argv[2])
-elif len(sys.argv) == 4:
-    game = Game(30, 30, sys.argv[1], sys.argv[2], sys.argv[3])
-elif len(sys.argv) == 5:
-    game = Game(30, 30, sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
-elif len(sys.argv) == 6:
-    game = Game(30, 30, sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
-
-
-
-### CODE THAT CAME WITH PYGAME TUTORIAL FOR REFERENCE ###
-
-# size = width, height = 800, 600
-# speed = [10, 10]
-# black = 0, 0, 0
-
-# screen = pygame.display.set_mode(size)
-
-# ball = pygame.image.load("static/ball.png")
-# ballrect = ball.get_rect()
-
-# while 1:
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT: sys.exit()
-
-#     ballrect = ballrect.move(speed)
-#     if ballrect.left < 0 or ballrect.right > width:
-#         speed[0] = -speed[0]
-#     if ballrect.top < 0 or ballrect.bottom > height:
-#         speed[1] = -speed[1]
-
-#     screen.fill(black)
-#     screen.blit(ball, ballrect)
-#     pygame.display.flip()
+game = Game(30, 30, *sys.argv[1:])

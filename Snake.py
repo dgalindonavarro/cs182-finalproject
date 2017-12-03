@@ -12,7 +12,6 @@ class Snake():
         self.add_tail = False
         self.eaten = []
         self.color = color
-        # self.user = False
 
     # Add new coordinate as the new head of snake
     def push(self, new):
@@ -49,49 +48,9 @@ class Snake():
         else:
             return []
 
-    # Return Action to take. If User controlled snake, look at current keypress.
-    # If not, return a random action
+    # return a random action
     def getAction(self, state):
-        # if(self.user):
-        #     actions = self.getActions()
-        #     pressed = pygame.key.get_pressed()
-        #     direction = self.direction
 
-        #     if pressed[pygame.K_UP] and direction != "south":
-        #         if direction == "north":
-        #             action = actions[0]
-        #         elif direction == "west":
-        #             action = actions[2]
-        #         elif direction == "east":
-        #             action = actions[1]
-        #     elif pressed[pygame.K_DOWN] and direction != "north":
-        #         if direction == "south":
-        #             action = actions[0]
-        #         elif direction == "east":
-        #             action = actions[2]
-        #         elif direction == "west":
-        #             action = actions[1]
-        #     elif pressed[pygame.K_LEFT] and direction != "east":
-        #         if direction == "west":
-        #             action = actions[0]
-        #         elif direction == "south":
-        #             action = actions[2]
-        #         elif direction == "north":
-        #             action = actions[1]
-        #     elif pressed[pygame.K_RIGHT] and direction != "west":
-        #         if direction == "east":
-        #             action = actions[0]
-        #         elif direction == "north":
-        #             action = actions[2]
-        #         elif direction == "south":
-        #             action = actions[1]
-
-        #     # if no arrow keystroke detected
-        #     else:
-        #         action = actions[0]
-
-        # if snake is not a user snake, return a random action
-        # else:
         action = random.choice(self.getActions())
 
         return action
@@ -122,8 +81,6 @@ class Snake():
             self.add_tail = False
 
         # If tail is on an eaten apple, add to tail next timestep
-        # print "List:", self.position
-        # print self.position[-1]
         if len(self.eaten) > 0 and self.position[-1] == self.eaten[0]:
             self.add_tail = True
 
@@ -148,11 +105,11 @@ class Snake():
     # Add apple to "eaten" list
     def eat(self, food):
         self.eaten.append(food)
-        # print len(self.position)
         if len(self.position) == 1:
             self.add_tail = True
 
 class UserAgent(Snake):
+
     def getAction(self, gameState):
         actions = self.getActions()
         pressed = pygame.key.get_pressed()

@@ -91,49 +91,8 @@ class ReflexAgent(Snake):
             if manhattanDistance(newPos, food) < foodDistance:
               foodDistance = manhattanDistance(newPos, food)
 
-        # Initialize distance to closest ghost
-        # ghostDistance = 0
-
-        # # Iterate over ghost list to find closest distance to ghost
-        # for index, ghost in enumerate(newGhostStates):
-        #   if index == 0:
-        #     ghostDistance = manhattanDistance(newPos, ghost.getPosition())
-        #   else:
-        #     if manhattanDistance(newPost, ghost.getPosition()) < ghostDistance:
-        #       ghostDistance = manhattanDistance(newPos, ghost.getPosition())
-
         # Return evaluation function
         return (score * 100) - foodDistance
-
-# def scoreEvaluationFunction(currentGameState):
-#     """
-#       This default evaluation function just returns the score of the state.
-#       The score is the same one displayed in the Pacman GUI.
-
-#       This evaluation function is meant for use with adversarial search agents
-#       (not reflex agents).
-#     """
-#     return currentGameState.getScore()
-
-# class MultiAgentSearchAgent(Agent):
-#     """
-#       This class provides some common elements to all of your
-#       multi-agent searchers.  Any methods defined here will be available
-#       to the MinimaxPacmanAgent, AlphaBetaPacmanAgent & ExpectimaxPacmanAgent.
-
-#       You *do not* need to make any changes here, but you can if you want to
-#       add functionality to all your adversarial search agents.  Please do not
-#       remove anything, however.
-
-#       Note: this is an abstract class: one that should not be instantiated.  It's
-#       only partially specified, and designed to be extended.  Agent (game.py)
-#       is another abstract class.
-#     """
-
-#     def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
-#         self.index = 0 # Pacman is always agent index 0
-#         self.evaluationFunction = util.lookup(evalFn, globals())
-#         self.depth = int(depth)
 
 class MinimaxAgent(Snake):
     """
