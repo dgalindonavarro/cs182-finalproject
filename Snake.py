@@ -1,5 +1,7 @@
+import pygame, random
+
 class Snake():
-    def __init__(self, id, team_id):
+    def __init__(self, id, team_id, color):
         self.id = id
         self.position = []
         self.head = None
@@ -7,6 +9,8 @@ class Snake():
         self.direction = None
         self.team = team_id
         self.new_tail = None
+        self.color = color
+        self.user = False
 
     # Add new coordinate as the new head of snake
     def push(self, new):
@@ -40,6 +44,53 @@ class Snake():
         actions = ["forward", "left", "right"]
 
         return actions
+
+    # Return Action to take. If User controlled snake, look at current keypress.
+    # If not, return a random action
+    def getAction(self):
+        if(self.user):
+            actions = self.getActions()
+            pressed = pygame.key.get_pressed()
+            direction = self.direction
+
+            if pressed[pygame.K_UP] and direction != "south":
+                if direction == "north":
+                    action = actions[0]
+                elif direction == "west":
+                    action = actions[2]
+                elif direction == "east":
+                    action = actions[1]
+            elif pressed[pygame.K_DOWN] and direction != "north":
+                if direction == "south":
+                    action = actions[0]
+                elif direction == "east":
+                    action = actions[2]
+                elif direction == "west":
+                    action = actions[1]
+            elif pressed[pygame.K_LEFT] and direction != "east":
+                if direction == "west":
+                    action = actions[0]
+                elif direction == "south":
+                    action = actions[2]
+                elif direction == "north":
+                    action = actions[1]
+            elif pressed[pygame.K_RIGHT] and direction != "west":
+                if direction == "east":
+                    action = actions[0]
+                elif direction == "north":
+                    action = actions[2]
+                elif direction == "south":
+                    action = actions[1]
+
+            # if no arrow keystroke detected
+            else:
+                action = actions[0]
+
+        # if snake is not a user snake, return a random action
+        else:
+            action = random.choice(self.getActions())
+
+        return action
 
     # Move the snake based on its current direction and given action
     def move(self, action):
