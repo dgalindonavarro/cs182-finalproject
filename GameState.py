@@ -1,4 +1,5 @@
-import random
+import random, copy
+from multiAgents import ReflexAgent
 from Snake import Snake
 from Team import Team
 
@@ -24,13 +25,13 @@ class GameState():
                 if (i, j) not in obstacles:
                     self.legalPositions.append((i, j))
 
+        self.addRandoFood()
+
+        self.remove_food = None
+
     # for duplicating the state (in case dicts become part of a State object)
     def deepCopy( self ):
-        state = GameState( self )
-        state.food = self.food
-        # state.snakes = self.snakes
-        # state.snakes2 = self.snakes2
-        state.teams = self.teams
+        state = copy.deepcopy(self)
         return state
 
     # Update snake position list based on index
@@ -40,6 +41,9 @@ class GameState():
 
     # Update and check collisions
     def update(self):
+        if self.remove_food != None:
+            self.removeFood(self.remove_food)
+
         collisions = self.collisionsOnBoard()
 
         # Iterate through snakes with collisions and update each one
@@ -48,9 +52,6 @@ class GameState():
 
         # Check if snakes are eating food in this timestep
         self.snakesEating()
-
-        ### For now, this adds food every time step ###
-        self.addRandoFood()
 
     # Add a food item anywhere on the board that isn't going to be taken
     def addRandoFood(self):
@@ -203,7 +204,19 @@ class GameState():
         for i in xrange(len(self.teams)):
             for j in xrange(len(self.teams[i].snakes)):
                 if self.teams[i].snakes[j].isAlive():
-                    tail = self.teams[i].snakes[j].position[-1]
-                    if tail in self.food:
-                        self.teams[i].snakes[j].eat()
-                        self.food.remove(tail)
+                    snake = self.teams[i].snakes[j]
+                    if snake.head in self.food:
+                        self.foodEaten(snake.head)
+                        snake.eat(snake.head)
+
+    # Adds a new food object and removes eaten food from board
+    def foodEaten(self, food):
+        self.addRandoFood()
+        self.food.remove(food)
+
+    # Returns a successor based on a single snake's action
+    def generateSuccessor(self, snake_id, team_id, action):
+        successor = self.deepCopy()
+        successor.teams[team_id].snakes[snake_id].move(action)
+        successor.update()
+        return successor
