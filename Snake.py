@@ -44,20 +44,6 @@ class Snake():
 
     # Move the snake based on its current direction and given action
     def move(self, action):
-
-        # If it's not time to add to tail, pop tail
-        if not self.add_tail:
-            self.pop()
-        # Otherwise, add the correct eaten apple to tail and update "eaten" list
-        else:
-            self.position.append(self.eaten.pop(0))
-            self.length += 1
-            self.add_tail = False
-
-        # If tail is on an eaten apple, add to tail next timestep
-        if len(self.eaten) > 0 and self.position[-1] == self.eaten[0]:
-            self.add_tail = True
-
         # Update snake's direction based on the action
         directions = self.getDirections()
         if action == "left" and self.direction != "north":
@@ -71,6 +57,21 @@ class Snake():
 
         # Push new head onto snake in the correct direction
         self.push(self.getNewHeadPos(self.direction))
+
+        # If it's not time to add to tail, pop tail
+        if not self.add_tail:
+            self.pop()
+        # Otherwise, add the correct eaten apple to tail and update "eaten" list
+        else:
+            self.position.append(self.eaten.pop(0))
+            self.length += 1
+            self.add_tail = False
+
+        # If tail is on an eaten apple, add to tail next timestep
+        # print "List:", self.position
+        # print self.position[-1]
+        if len(self.eaten) > 0 and self.position[-1] == self.eaten[0]:
+            self.add_tail = True
 
     # Update the snake based on index to cut off
     def updateSnake(self, index):
@@ -93,5 +94,8 @@ class Snake():
     # Add apple to "eaten" list
     def eat(self, food):
         self.eaten.append(food)
+        # print len(self.position)
+        # if len(self.position) == 1:
+        #     self.add_tail = True
 
     
