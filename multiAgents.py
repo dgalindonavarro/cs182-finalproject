@@ -135,140 +135,178 @@ class ReflexAgent(Snake):
 #         self.evaluationFunction = util.lookup(evalFn, globals())
 #         self.depth = int(depth)
 
-# class MinimaxAgent(Snake):
-#     """
-#       Your minimax agent (question 2)
-#     """
+class MinimaxAgent(Snake):
+    """
+      Your minimax agent (question 2)
+    """
 
-#     def evaluationFunction(self, gameState):
-#         newPos = gameState.teams[self.team_id].snakes[self.id].head
+    def evaluationFunction(self, gameState):
+        newPos = gameState.teams[self.team_id].snakes[self.id].head
 
-#         if newPos == None:
-#           return -sys.maxint - 1
-#         # Get current score
-#         score = gameState.teams[self.team_id].getScore()
+        if newPos == None:
+          return -sys.maxint - 1
+        # Get current score
+        score = gameState.teams[self.team_id].getScore()
 
-#         # Get positions of all food elements
-#         foodList = gameState.food
+        # Get positions of all food elements
+        foodList = gameState.food
 
-#         # Initialize distance to closest food
-#         foodDistance = 0
+        # Initialize distance to closest food
+        foodDistance = 0
 
-#         # Iterate over food list to find closest distance to food
-#         for index, food in enumerate(foodList):
-#           if index == 0:
-#             foodDistance = manhattanDistance(newPos, food)
-#           else:
-#             if manhattanDistance(newPos, food) < foodDistance:
-#               foodDistance = manhattanDistance(newPos, food)
+        # Iterate over food list to find closest distance to food
+        for index, food in enumerate(foodList):
+          if index == 0:
+            foodDistance = manhattanDistance(newPos, food)
+          else:
+            if manhattanDistance(newPos, food) < foodDistance:
+              foodDistance = manhattanDistance(newPos, food)
 
-#         return (score * 100) - foodDistance
+        return (score * 100) - foodDistance
 
-#     def getAction(self, gameState):
-#         """
-#           Returns the minimax action from the current gameState using self.depth
-#           and self.evaluationFunction.
+    def getAction(self, gameState):
+        """
+          Returns the minimax action from the current gameState using self.depth
+          and self.evaluationFunction.
 
-#           Here are some method calls that might be useful when implementing minimax.
+          Here are some method calls that might be useful when implementing minimax.
 
-#           gameState.getLegalActions(agentIndex):
-#             Returns a list of legal actions for an agent
-#             agentIndex=0 means Pacman, ghosts are >= 1
+          gameState.getLegalActions(agentIndex):
+            Returns a list of legal actions for an agent
+            agentIndex=0 means Pacman, ghosts are >= 1
 
-#           gameState.generateSuccessor(agentIndex, action):
-#             Returns the successor game state after an agent takes an action
+          gameState.generateSuccessor(agentIndex, action):
+            Returns the successor game state after an agent takes an action
 
-#           gameState.getNumAgents():
-#             Returns the total number of agents in the game
-#         """
-#         "*** YOUR CODE HERE ***"
-#         num_agents = 0
-#         for team in gameState.teams:
-#             for snake in team.snakes:
-#                 num_agents += 1
-#         self.depth = 2 * num_agents
+          gameState.getNumAgents():
+            Returns the total number of agents in the game
+        """
+        "*** YOUR CODE HERE ***"
+        self.agent_list = [(self.id, self.team_id)]
+        for team in gameState.teams:
+            for snake in team.snakes:
+                if not (snake.id == self.id and team.id == self.team_id):
+                    self.agent_list.append((snake.id, team.id))
+        self.depth = 1 * len(self.agent_list)
+        action = self.value(gameState, 0, 0)
+        return action
 
-#         def value(state, agent_id, team_id, depth):
-#           # print depth
-#           # print "Id", agent_id
-#           # print self.id
-#           # print "Team", team_id
-#           # print "My team is team", self.team_id
-#           # If at a terminal state or if max-depth has been reached, return
-#           # evaluation function
-#           # if state.isWin() or state.isLose() or (depth == 0 and agentIndex == 0):
-#           if (depth == 0 and agent_id == self.id and team_id == self.team_id):
-#             return self.evaluationFunction(state)
+    def value(self, state, index, depth):
+        if depth == self.depth or not state.teams[self.agent_list[index][1]].snakes[self.agent_list[index][0]].isAlive():
+            return self.evaluationFunction(state)
+        else:
+            if self.agent_list[index][1] == self.team_id:
+                return self.maxValue(state, index, depth)
+            else:
+                return self.minValue(state, index, depth)
 
-#           # Otherwise, check whether next agent is min or max
-#           else:
-#             if team_id == self.team_id:
-#               v, action = maxValue(state, agent_id, team_id, depth)
-#               return v
-#             else:
-#               v, action = minValue(state, agent_id, team_id, depth)
-#               return v
+    def maxValue(self, state, index, depth):
+        v = -float("inf") - 1
+        act = None
+        actions = self.getActions()
+        for action in actions:
+            successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
+            newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
 
-#         def maxValue(state, agent_id, team_id, depth):
-#           # print "Depth Min:", depth
-#           v = -sys.maxint - 1
+            if depth == 0:
+                if v < newVal:
+                    v = newVal
+                    act = action
+            else:
+                v = max(v, newVal)
+        if depth == 0:
+            return act
+        return v
 
-#           agent = state.teams[team_id].snakes[agent_id]
-#           # Loop through all possible legal actions
-#           for index, action in enumerate(agent.getActions()):
-#             if state.teams[team_id].snakes[agent_id].isAlive():
-#                 successorState = state.generateSuccessor(agent_id, team_id, action)
-#             else:
-#                 successorState = state.deepCopy()
+    def minValue(self, state, index, depth):
+        v = float("inf")
+        actions = self.getActions()
+        for action in actions:
+            successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
+            newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
+            v = min(v, newVal)
+        return v
 
-#             if agent_id == self.id and len(state.teams[team_id].snakes) > 1:
-#                 next_agent = (agent_id + 1) % len(state.teams[team_id].snakes)
-#                 next_team = team_id
-#             else:
-#                 next_agent = 0
-#                 next_team = (team_id + 1) % len(state.teams)
 
-#             # Get value of successor state
-#             nextValue = value(successorState, next_agent, next_team, depth - 1)
-#             # If greater than v, assign to v
-#             if nextValue > v:
-#               v = nextValue
-#               bestAction = action
-#           # Return v and the associated action
-#           return v, bestAction
+        # def value(state, agent_id, team_id, depth):
+        #   # print depth
+        #   # print "Id", agent_id
+        #   # print self.id
+        #   # print "Team", team_id
+        #   # print "My team is team", self.team_id
+        #   # If at a terminal state or if max-depth has been reached, return
+        #   # evaluation function
+        #   # if state.isWin() or state.isLose() or (depth == 0 and agentIndex == 0):
+        #   if (depth == 0 and agent_id == self.id and team_id == self.team_id):
+        #     return self.evaluationFunction(state)
 
-#         def minValue(state, agent_id, team_id, depth):
-#           # print "Depth Max:", depth
-#           v = sys.maxint
+        #   # Otherwise, check whether next agent is min or max
+        #   else:
+        #     if team_id == self.team_id:
+        #       v, action = maxValue(state, agent_id, team_id, depth)
+        #       return v
+        #     else:
+        #       v, action = minValue(state, agent_id, team_id, depth)
+        #       return v
 
-#           agent = state.teams[team_id].snakes[agent_id]
-#           # Loop through all possible legal actions
-#           for index, action in enumerate(agent.getActions()):
-#             if state.teams[team_id].snakes[agent_id].isAlive():
-#                 successorState = state.generateSuccessor(agent_id, team_id, action)
-#             else:
-#                 successorState = state.deepCopy()
+        # def maxValue(state, agent_id, team_id, depth):
+        #   # print "Depth Min:", depth
+        #   v = -sys.maxint - 1
 
-#             if agent_id == len(state.teams[team_id].snakes) - 1:
-#                 next_agent = self.id
-#                 next_team = self.team_id
-#             else:
-#                 next_agent = agent_id + 1
-#                 next_team = team_id
+        #   agent = state.teams[team_id].snakes[agent_id]
+        #   # Loop through all possible legal actions
+        #   for index, action in enumerate(agent.getActions()):
+        #     if state.teams[team_id].snakes[agent_id].isAlive():
+        #         successorState = state.generateSuccessor(agent_id, team_id, action)
+        #     else:
+        #         successorState = state.deepCopy()
 
-#             # Get value of successor state
-#             nextValue = value(successorState, next_agent, next_team, depth - 1)
-#             # If less than v, assign to v
-#             if nextValue < v:
-#               v = nextValue
-#               bestAction = action
-#           # Return v and the associated action
-#           return v, bestAction
+        #     if agent_id == self.id and len(state.teams[team_id].snakes) > 1:
+        #         next_agent = (agent_id + 1) % len(state.teams[team_id].snakes)
+        #         next_team = team_id
+        #     else:
+        #         next_agent = 0
+        #         next_team = (team_id + 1) % len(state.teams)
 
-#         print self.depth
-#         # Run algorithm starting with max agent
-#         score, action = maxValue(gameState, self.id, self.team_id, self.depth)
-#         return action
+        #     # Get value of successor state
+        #     nextValue = value(successorState, next_agent, next_team, depth - 1)
+        #     # If greater than v, assign to v
+        #     if nextValue > v:
+        #       v = nextValue
+        #       bestAction = action
+        #   # Return v and the associated action
+        #   return v, bestAction
+
+        # def minValue(state, agent_id, team_id, depth):
+        #   # print "Depth Max:", depth
+        #   v = sys.maxint
+
+        #   agent = state.teams[team_id].snakes[agent_id]
+        #   # Loop through all possible legal actions
+        #   for index, action in enumerate(agent.getActions()):
+        #     if state.teams[team_id].snakes[agent_id].isAlive():
+        #         successorState = state.generateSuccessor(agent_id, team_id, action)
+        #     else:
+        #         successorState = state.deepCopy()
+
+        #     if agent_id == len(state.teams[team_id].snakes) - 1:
+        #         next_agent = self.id
+        #         next_team = self.team_id
+        #     else:
+        #         next_agent = agent_id + 1
+        #         next_team = team_id
+
+        #     # Get value of successor state
+        #     nextValue = value(successorState, next_agent, next_team, depth - 1)
+        #     # If less than v, assign to v
+        #     if nextValue < v:
+        #       v = nextValue
+        #       bestAction = action
+        #   # Return v and the associated action
+        #   return v, bestAction
+
+        # print self.depth
+        # Run algorithm starting with max agent
 
 
 

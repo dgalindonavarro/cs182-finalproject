@@ -1,5 +1,16 @@
 class Snake():
-    def __init__(self, id, team_id):
+    # def __init__(self, id, team_id):
+    #     self.id = id
+    #     self.position = []
+    #     self.head = None
+    #     self.length = 0
+    #     self.direction = None
+    #     self.team_id = team_id
+    #     self.add_tail = False
+    #     self.eaten = []
+
+    def __init__(self, id, team_id, state):
+        self.state = state
         self.id = id
         self.position = []
         self.head = None
@@ -38,9 +49,11 @@ class Snake():
 
     # Return list of actions
     def getActions(self):
-        actions = ["forward", "left", "right"]
-
-        return actions
+        if self.isAlive():
+            actions = ["forward", "left", "right"]
+            return actions
+        else:
+            return []
 
     # Move the snake based on its current direction and given action
     def move(self, action):
@@ -63,7 +76,7 @@ class Snake():
             self.pop()
         # Otherwise, add the correct eaten apple to tail and update "eaten" list
         else:
-            self.position.append(self.eaten.pop(0))
+            self.eaten.pop(0)
             self.length += 1
             self.add_tail = False
 
@@ -95,7 +108,7 @@ class Snake():
     def eat(self, food):
         self.eaten.append(food)
         # print len(self.position)
-        # if len(self.position) == 1:
-        #     self.add_tail = True
+        if len(self.position) == 1:
+            self.add_tail = True
 
     

@@ -1,5 +1,5 @@
 import random, copy
-from multiAgents import ReflexAgent
+from multiAgents import ReflexAgent, MinimaxAgent
 from Snake import Snake
 from Team import Team
 
@@ -7,6 +7,7 @@ class GameState():
     def __init__( self, num_teams, team_colors, width, height, obstacles=[]):
 
         # Create specified number of teams and assign colors
+        self.index = 0
         self.teams = []
         for i in xrange(num_teams):
             self.teams.append(Team(i, team_colors[i]))
@@ -24,8 +25,6 @@ class GameState():
 
         self.addRandoFood()
 
-        self.remove_food = None
-
     # for duplicating the state (in case dicts become part of a State object)
     def deepCopy( self ):
         state = copy.deepcopy(self)
@@ -38,8 +37,6 @@ class GameState():
 
     # Update and check collisions
     def update(self):
-        if self.remove_food != None:
-            self.removeFood(self.remove_food)
 
         collisions = self.collisionsOnBoard()
 
@@ -65,7 +62,8 @@ class GameState():
     def addRandoSnake(self, width, height, length, team_id):
         # Get index of snake
         snek_id = len(self.teams[team_id].snakes)
-        snek = ReflexAgent(snek_id, team_id)
+        # snek = ReflexAgent(snek_id, team_id)
+        snek = MinimaxAgent(snek_id, team_id, self)
         head = None
 
         # Get list of positions that are next to or on top of any other snakes as to avoid placing new head there
@@ -214,6 +212,7 @@ class GameState():
     # Returns a successor based on a single snake's action
     def generateSuccessor(self, snake_id, team_id, action):
         successor = self.deepCopy()
+        successor.index = 1
         successor.teams[team_id].snakes[snake_id].move(action)
         successor.update()
         return successor

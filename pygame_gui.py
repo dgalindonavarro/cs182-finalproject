@@ -34,7 +34,7 @@ class Game():
         # create some random snakes
         for team in xrange(int(teams)):
             for snake in xrange(int(snakes)):
-                self.state.addRandoSnake(width, height, 5, team)
+                self.state.addRandoSnake(width, height, 1, team)
             
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))
