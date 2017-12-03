@@ -9,12 +9,14 @@ from time import sleep
 # these are to test snake collisions
 
 # How to Call pygame_gui.py: (for now. this is a stupid way)
-# >>> python pygame_gui.py [# of teams] [snakes per team] [game speed in seconds] ... to be determined[]
-
+# >>> python pygame_gui.py [# of teams] [snakes per team] [game speed in seconds] [isUserControlled bool]... to be determined[]
+#
+# example: 2 teams, 2 snakes per team, user controls one snake
+# >>> python pygame_gui.py 2 2 0.1 True
 class Game():
 
     # Initialize the game screen
-    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, pixel_size=10):
+    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, pixel_size=10):
         pygame.init()
 
         # Setup dimensions of game
@@ -22,8 +24,8 @@ class Game():
         self.width = width * self.pixel_size
         self.height = height * self.pixel_size
 
-        # Hard coded color scheme for now
-        team_colors = [(0, 255, 0), (66,238,244), (189, 77, 219)]
+        # Hard coded color scheme for now (team1, team2, team3, USER)
+        team_colors = [(0, 255, 0), (66,238,244), (189, 77, 219), (11, 102, 35)]
 
         # initialize Game State for first time
         self.state = GameState(int(teams), team_colors, width, height)
@@ -34,8 +36,13 @@ class Game():
         # create some random snakes
         for team in xrange(int(teams)):
             for snake in xrange(int(snakes)):
-                self.state.addRandoSnake(width, height, 1, team)
-            
+                self.state.addRandoSnake(width, height, 5, team)
+
+        # set team 1, snake 1 to be user controlled    
+        if user == "True":
+            self.state.teams[0].snakes[0].user = True
+            self.state.teams[0].snakes[0].color = team_colors[3]
+
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.screen.fill((0, 0, 0))
@@ -98,11 +105,11 @@ class Game():
             for snake in team.snakes:
                 for x, y in snake.position:
                     if ((x,y) == snake.head):
-                        head_color = (team.color[0] / 2, team.color[1] / 2, team.color[2] / 2)
+                        head_color = (snake.color[0] / 2, snake.color[1] / 2, snake.color[2] / 2)
                         self.drawPixel(x, y, head_color) 
                         self.drawEyes(x, y, snake.direction)
                     else: 
-                        self.drawPixel(x, y, team.color)
+                        self.drawPixel(x, y, snake.color)
                         if (x,y) in snake.eaten:
                             self.drawApple(x, y)
 
@@ -191,6 +198,7 @@ class Game():
         print("Score: " + str(winner[1])) 
         return
 
+# Game initializer and Argument Option Parser
 if len(sys.argv) == 1:
     game = Game(30, 30)
 elif len(sys.argv) == 2:
@@ -200,6 +208,9 @@ elif len(sys.argv) == 3:
     game = Game(30, 30, sys.argv[1], sys.argv[2])
 elif len(sys.argv) == 4:
     game = Game(30, 30, sys.argv[1], sys.argv[2], sys.argv[3])
+elif len(sys.argv) == 5:
+    game = Game(30, 30, sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+
 
 
 ### CODE THAT CAME WITH PYGAME TUTORIAL FOR REFERENCE ###

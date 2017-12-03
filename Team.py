@@ -1,8 +1,7 @@
 class Team():
-	def __init__(self, id, color):
+	def __init__(self, id):
 		self.id = id
 		self.snakes = []
-		self.color = color
 
 	# Return current score of team, which is equal to the sum of snake lengths
 	# plus the lengths of their "eaten" lists
