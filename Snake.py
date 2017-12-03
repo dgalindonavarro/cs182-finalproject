@@ -84,13 +84,22 @@ class Snake():
         if len(self.eaten) > 0 and self.position[-1] == self.eaten[0]:
             self.add_tail = True
 
+    def undoMove(self, direction, position, length, eaten, add_tail):
+        self.direction = direction
+        self.position = position
+        self.head = self.position[0]
+        self.length = length
+        self.add_tail = add_tail
+        self.eaten = eaten
+
     # Update the snake based on index to cut off
     def updateSnake(self, index):
-        if index == -1:
-            self.die()
-        else:
-            self.position = self.position[:index + 1]
-            self.length = len(self.position)
+        if self.isAlive():
+            if index == -1:
+                self.die()
+            else:
+                self.position = self.position[:index + 1]
+                self.length = len(self.position)
 
     # Empty the snake's position and reset all values
     def die(self):

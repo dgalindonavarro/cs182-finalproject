@@ -225,3 +225,19 @@ class GameState():
         successor.teams[team_id].snakes[snake_id].move(action)
         successor.update()
         return successor
+
+    def executeMove(self, snake_id, team_id, action):
+        snake = self.teams[team_id].snakes[snake_id]
+        direction = copy.deepcopy(snake.direction)
+        position = copy.deepcopy(snake.position)
+        length = copy.deepcopy(snake.length)
+        eaten = copy.deepcopy(snake.eaten)
+        add_tail = copy.deepcopy(snake.add_tail)
+        food = copy.deepcopy(self.food)
+        self.teams[team_id].snakes[snake_id].move(action)
+        self.update()
+        return direction, position, length, eaten, add_tail, food
+
+    def undoMove(self, snake_id, team_id, direction, position, length, eaten, add_tail, food):
+        self.teams[team_id].snakes[snake_id].undoMove(direction, position, length, eaten, add_tail)
+        self.food = food
