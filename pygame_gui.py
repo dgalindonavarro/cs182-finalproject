@@ -16,7 +16,7 @@ from time import sleep
 class Game():
 
     # Initialize the game screen
-    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, pixel_size=10):
+    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", pixel_size=10):
         pygame.init()
 
         # Setup dimensions of game
@@ -36,12 +36,16 @@ class Game():
         # create some random snakes
         for team in xrange(int(teams)):
             for snake in xrange(int(snakes)):
-                self.state.addRandoSnake(width, height, 5, team)
+                if snake == 0 and team == 0 and user == "True":
+                    agent_type = "U"
+                else:
+                    agent_type = agent
+                self.state.addRandoSnake(width, height, 5, team, agent_type)
 
         # set team 1, snake 1 to be user controlled    
-        if user == "True":
-            self.state.teams[0].snakes[0].user = True
-            self.state.teams[0].snakes[0].color = team_colors[3]
+        # if user == "True":
+        #     self.state.teams[0].snakes[0].user = True
+        #     self.state.teams[0].snakes[0].color = team_colors[3]
 
         # Create the screen with black background
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -210,6 +214,8 @@ elif len(sys.argv) == 4:
     game = Game(30, 30, sys.argv[1], sys.argv[2], sys.argv[3])
 elif len(sys.argv) == 5:
     game = Game(30, 30, sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+elif len(sys.argv) == 6:
+    game = Game(30, 30, sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
 
 
 

@@ -1,6 +1,6 @@
 import random, copy
-from multiAgents import ReflexAgent, MinimaxAgent
-from Snake import Snake
+from multiAgents import ReflexAgent, MinimaxAgent, AlphaBetaAgent
+from Snake import Snake, UserAgent
 from Team import Team
 
 class GameState():
@@ -61,10 +61,18 @@ class GameState():
 
     # Add a snake in a random place to begin which does not conflict with current environment objects, to the Game State.
 
-    def addRandoSnake(self, width, height, length, team_id):
+    def addRandoSnake(self, width, height, length, team_id, agent):
         # Get index of snake
         snek_id = len(self.teams[team_id].snakes)
-        snek = MinimaxAgent(snek_id, team_id, self.team_colors[team_id])
+        if agent == "U":
+            snek = UserAgent(snek_id, team_id, (11, 102, 35))
+            # snek.color = (11, 102, 35)
+        elif agent == "M":
+            snek = MinimaxAgent(snek_id, team_id, self.team_colors[team_id])
+        elif agent == "A":
+            snek = AlphaBetaAgent(snek_id, team_id, self.team_colors[team_id])
+        else:
+            snek = Snake(snek_id, team_id, self.team_colors[team_id])
         head = None
 
         # Get list of positions that are next to or on top of any other snakes as to avoid placing new head there
