@@ -66,9 +66,6 @@ class GameState():
         snek_id = len(self.teams[team_id].snakes)
         if agent == "U":
             snek = UserAgent(snek_id, team_id, (11, 102, 35))
-        # elif agent == "R":
-        #     print "R"
-        #     snek = ReflexAgent(snek_id, team_id, self.team_colors[team_id])
         elif agent == "M":
             snek = MinimaxAgent(snek_id, team_id, self.team_colors[team_id])
         elif agent == "A":

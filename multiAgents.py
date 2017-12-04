@@ -137,7 +137,6 @@ class MinimaxAgent(Snake):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        # print "Minimax:", self.team_id
         self.agent_list = [(self.id, self.team_id)]
         for team in gameState.teams:
             for snake in team.snakes:
@@ -161,9 +160,7 @@ class MinimaxAgent(Snake):
         act = None
         actions = self.getActions()
         for action in actions:
-            # successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
             direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
-            # newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
             newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
             state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
@@ -181,9 +178,7 @@ class MinimaxAgent(Snake):
         v = float("inf")
         actions = self.getActions()
         for action in actions:
-            # successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
             direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
-            # newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
             newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
             state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
@@ -242,7 +237,7 @@ class AlphaBetaAgent(Snake):
             for snake in team.snakes:
                 if not (snake.id == self.id and team.id == self.team_id):
                     self.agent_list.append((snake.id, team.id))
-        self.depth = 1 * len(self.agent_list)
+        self.depth = 2 * len(self.agent_list)
         action = self.value(gameState, -float("inf") - 1, float("inf"), 0, 0)
         return action
 
@@ -260,8 +255,9 @@ class AlphaBetaAgent(Snake):
         act = None
         actions = self.getActions()
         for action in actions:
-            successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
-            newVal = self.value(successorState, alpha, beta, (index + 1) % len(self.agent_list), depth + 1)
+            direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+            newVal = self.value(state, alpha, beta, (index + 1) % len(self.agent_list), depth + 1)
+            state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
             if depth == 0:
                 if v < newVal:
@@ -280,8 +276,10 @@ class AlphaBetaAgent(Snake):
         v = float("inf")
         actions = self.getActions()
         for action in actions:
-            successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
-            newVal = self.value(successorState, alpha, beta, (index + 1) % len(self.agent_list), depth + 1)
+            direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+            newVal = self.value(state, alpha, beta, (index + 1) % len(self.agent_list), depth + 1)
+            state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
+            
             v = min(v, newVal)
             if v < alpha:
               return v
@@ -349,8 +347,9 @@ class ExpectimaxAgent(Snake):
         act = None
         actions = self.getActions()
         for action in actions:
-            successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
-            newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
+            direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+            newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
+            state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
             if depth == 0:
                 if v < newVal:
@@ -366,8 +365,9 @@ class ExpectimaxAgent(Snake):
         v = 0
         actions = self.getActions()
         for action in actions:
-            successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
-            newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
+            direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+            newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
+            state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
             p = 1.0 / len(actions)
             v += newVal * p
         return v
