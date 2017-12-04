@@ -191,6 +191,7 @@ class AlphaBetaAgent(Snake):
     """
 
     def evaluationFunction(self, gameState):
+
         score = 0
         totalFoodDistance = 0
         snakesAlive = 0
