@@ -104,6 +104,8 @@ class Snake():
                     self.add_tail = False
                 else:
                     break
+            if len(self.eaten) > 0 and self.position[-1] == self.eaten[0]:
+                self.add_tail = True
 
     # Empty the snake's position and reset all values
     def die(self):
