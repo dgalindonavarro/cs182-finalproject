@@ -137,6 +137,7 @@ class MinimaxAgent(Snake):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
+        # print "Minimax:", self.team_id
         self.agent_list = [(self.id, self.team_id)]
         for team in gameState.teams:
             for snake in team.snakes:

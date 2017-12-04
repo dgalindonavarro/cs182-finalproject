@@ -66,6 +66,9 @@ class GameState():
         snek_id = len(self.teams[team_id].snakes)
         if agent == "U":
             snek = UserAgent(snek_id, team_id, (11, 102, 35))
+        # elif agent == "R":
+        #     print "R"
+        #     snek = ReflexAgent(snek_id, team_id, self.team_colors[team_id])
         elif agent == "M":
             snek = MinimaxAgent(snek_id, team_id, self.team_colors[team_id])
         elif agent == "A":
@@ -73,7 +76,7 @@ class GameState():
         elif agent == "E":
             snek = ExpectimaxAgent(snek_id, team_id, self.team_colors[team_id])
         else:
-            snek = Snake(snek_id, team_id, self.team_colors[team_id])
+            snek = ReflexAgent(snek_id, team_id, self.team_colors[team_id])
         head = None
 
         # Get list of positions that are next to or on top of any other snakes as to avoid placing new head there

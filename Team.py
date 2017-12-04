@@ -8,10 +8,11 @@ class Team():
 	def getScore(self):
 		score = 0
 		for snake in self.snakes:
-			if snake.isAlive():
-				score += len(snake.position) + len(snake.eaten)
-			else:
-				score += snake.final_score
+			# if snake.isAlive():
+			# 	score += len(snake.position) + len(snake.eaten)
+			# else:
+			# 	score += snake.final_score
+			score += snake.length + len(snake.eaten)
 		return score
 
 	# Update a member of the team

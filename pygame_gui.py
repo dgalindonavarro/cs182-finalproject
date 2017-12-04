@@ -37,8 +37,10 @@ class Game():
             for snake in xrange(int(snakes)):
                 if snake == 0 and team == 0 and user == "True":
                     agent_type = "U"
-                else:
+                elif team == 0:
                     agent_type = agent
+                else:
+                    agent_type = "R"
                 self.state.addRandoSnake(width, height, 5, team, agent_type)
 
         if not self.no_graphics:
