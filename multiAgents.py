@@ -142,7 +142,7 @@ class MinimaxAgent(Snake):
             for snake in team.snakes:
                 if not (snake.id == self.id and team.id == self.team_id):
                     self.agent_list.append((snake.id, team.id))
-        self.depth = 1 * len(self.agent_list)
+        self.depth = 2 * len(self.agent_list)
         action = self.value(gameState, 0, 0)
         return action
 
