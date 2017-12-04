@@ -6,7 +6,7 @@ class Snake():
         self.id = id
         self.position = []
         self.head = None
-        self.length = 0
+        # self.length = 0
         self.direction = None
         self.team_id = team_id
         self.add_tail = False
@@ -77,32 +77,37 @@ class Snake():
         # Otherwise, add the correct eaten apple to tail and update "eaten" list
         else:
             self.eaten.pop(0)
-            self.length += 1
+            # self.length += 1
             self.add_tail = False
 
         # If tail is on an eaten apple, add to tail next timestep
         if len(self.eaten) > 0 and self.position[-1] == self.eaten[0]:
             self.add_tail = True
 
-    def undoMove(self, direction, position, length, eaten, add_tail):
+    def undoMove(self, direction, position, eaten, add_tail):
         self.direction = direction
         self.position = position
         self.head = self.position[0]
-        self.length = length
+        # self.length = length
         self.add_tail = add_tail
         self.eaten = eaten
 
     # Update the snake based on index to cut off
     def updateSnake(self, index):
-        if self.isAlive():
-            if index == -1:
-                self.die()
-            else:
-                self.position = self.position[:index + 1]
-                self.length = len(self.position)
+        if index == -1:
+            self.die()
+        else:
+            self.position = self.position[:index]
+            while len(self.eaten) > 0:
+                if self.eaten[0] not in self.position:
+                    self.eaten.pop(0)
+                    self.add_tail = False
+                else:
+                    break
 
     # Empty the snake's position and reset all values
     def die(self):
+        self.final_score = len(self.position) + len(self.eaten)
         self.position = []
         self.head = None
         self.direction = None

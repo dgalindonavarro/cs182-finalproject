@@ -154,7 +154,7 @@ class GameState():
             else:
                 # If head to head collision, both snakes retain only their heads
                 if snake1.head == snake2.head:
-                    return [(team1_id, snake1_id, 0), (team2_id, snake2_id, 0)]
+                    return [(team1_id, snake1_id, 1), (team2_id, snake2_id, 1)]
                 # If one snake has crashed into the other's tail, cut off tail
                 elif snake1.head in snake2.position:
                     return [(team2_id, snake2_id, snake2.position.index(snake1.head))]
@@ -230,14 +230,14 @@ class GameState():
         snake = self.teams[team_id].snakes[snake_id]
         direction = copy.deepcopy(snake.direction)
         position = copy.deepcopy(snake.position)
-        length = copy.deepcopy(snake.length)
+        # length = copy.deepcopy(snake.length)
         eaten = copy.deepcopy(snake.eaten)
         add_tail = copy.deepcopy(snake.add_tail)
         food = copy.deepcopy(self.food)
         self.teams[team_id].snakes[snake_id].move(action)
         self.update()
-        return direction, position, length, eaten, add_tail, food
+        return direction, position, eaten, add_tail, food
 
-    def undoMove(self, snake_id, team_id, direction, position, length, eaten, add_tail, food):
-        self.teams[team_id].snakes[snake_id].undoMove(direction, position, length, eaten, add_tail)
+    def undoMove(self, snake_id, team_id, direction, position, eaten, add_tail, food):
+        self.teams[team_id].snakes[snake_id].undoMove(direction, position, eaten, add_tail)
         self.food = food

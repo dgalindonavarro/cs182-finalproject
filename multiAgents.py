@@ -161,10 +161,10 @@ class MinimaxAgent(Snake):
         actions = self.getActions()
         for action in actions:
             # successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
-            direction, position, length, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+            direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
             # newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
             newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
-            state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, length, eaten, add_tail, food)
+            state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
             if depth == 0:
                 if v < newVal:
@@ -181,10 +181,10 @@ class MinimaxAgent(Snake):
         actions = self.getActions()
         for action in actions:
             # successorState = state.generateSuccessor(self.agent_list[index][0], self.agent_list[index][1], action)
-            direction, position, length, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+            direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
             # newVal = self.value(successorState, (index + 1) % len(self.agent_list), depth + 1)
             newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
-            state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, length, eaten, add_tail, food)
+            state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
             v = min(v, newVal)
         return v
