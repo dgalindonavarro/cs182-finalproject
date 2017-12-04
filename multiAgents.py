@@ -193,6 +193,7 @@ class AlphaBetaAgent(Snake):
     def evaluationFunction(self, gameState):
         newPos = gameState.teams[self.team_id].snakes[self.id].head
 
+        # snake is dead
         if newPos == None:
           return -sys.maxint - 1
         # Get current score
