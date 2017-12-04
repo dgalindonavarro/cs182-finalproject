@@ -191,28 +191,65 @@ class AlphaBetaAgent(Snake):
     """
 
     def evaluationFunction(self, gameState):
-        newPos = gameState.teams[self.team_id].snakes[self.id].head
+        score = 0
+        totalFoodDistance = 0
+        snakesAlive = 0
+        teamSnakesAlive = 0
+        for team in gameState.teams:
+            if team.id == self.team_id:
+                score += team.getScore()
+            else:
+                score -= team.getScore()
+            for snake in team.snakes:
+                if snake.isAlive():
+                    foodDistance = 0
+                    for index, food in enumerate(gameState.food):
+                        foo = manhattanDistance(snake.head, food)
+                        if index == 0 or foo < foodDistance:
+                            foodDistance = foo
 
-        if newPos == None:
-          return -sys.maxint - 1
-        # Get current score
-        score = gameState.teams[self.team_id].getScore()
+                    if team.id == self.team_id:
+                        totalFoodDistance += foodDistance
+                        snakesAlive += 1
+                        teamSnakesAlive += 1
+                    else:
+                        totalFoodDistance -= foodDistance
+                        snakesAlive -= 1
 
-        # Get positions of all food elements
-        foodList = gameState.food
+        if teamSnakesAlive == 0:
+            return -sys.maxint - 1
 
-        # Initialize distance to closest food
-        foodDistance = 0
+        tailDistance = 0
+        if gameState.teams[self.team_id].snakes[self.id].isAlive():
+            head = gameState.teams[self.team_id].snakes[self.id].head
+            tail = gameState.teams[self.team_id].snakes[self.id].position[-1]
+            tailDistance = manhattanDistance(head, tail)
+        
+        return (score * 1000) - (totalFoodDistance * 10) + (snakesAlive * 5000)            
+        # return (score * 1000) - (totalFoodDistance * 10) + (snakesAlive * 5000) - (tailDistance * 5)
 
-        # Iterate over food list to find closest distance to food
-        for index, food in enumerate(foodList):
-          if index == 0:
-            foodDistance = manhattanDistance(newPos, food)
-          else:
-            if manhattanDistance(newPos, food) < foodDistance:
-              foodDistance = manhattanDistance(newPos, food)
+        # newPos = gameState.teams[self.team_id].snakes[self.id].head
 
-        return (score * 100) - foodDistance
+        # if newPos == None:
+        #   return -sys.maxint - 1
+        # # Get current score
+        # score = gameState.teams[self.team_id].getScore()
+
+        # # Get positions of all food elements
+        # foodList = gameState.food
+
+        # # Initialize distance to closest food
+        # foodDistance = 0
+
+        # # Iterate over food list to find closest distance to food
+        # for index, food in enumerate(foodList):
+        #   if index == 0:
+        #     foodDistance = manhattanDistance(newPos, food)
+        #   else:
+        #     if manhattanDistance(newPos, food) < foodDistance:
+        #       foodDistance = manhattanDistance(newPos, food)
+
+        # return (score * 100) - foodDistance
 
     def getAction(self, gameState):
         """

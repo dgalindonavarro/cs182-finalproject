@@ -157,11 +157,16 @@ class Game():
                 winner = "Tie"
 
         otherScore.remove(maxScore)
-        if self.agent == "A":
-            fd = open('data/AB_Data.csv','a')
-            newLine = "\n" + str(len(self.state.teams)) + "," + str(len(self.state.teams[0].snakes)) + "," + winner  + "," + str(maxScore) + "," + str(otherScore[0])
-            fd.write(newLine)
-            fd.close()
+        # if self.agent == "E":
+        #     fd = open('data/Expectimax_Data_1v1.csv','a')
+        #     newLine = "\n" + str(len(self.state.teams)) + "," + str(len(self.state.teams[0].snakes)) + "," + winner  + "," + str(maxScore) + "," + str(otherScore[0])
+        #     fd.write(newLine)
+        #     fd.close()
+        # if self.agent == "A":
+        #     fd = open('data/AB_Data_Solo.csv','a')
+        #     newLine = "\n" + str(maxScore)
+        #     fd.write(newLine)
+        #     fd.close()
 
         return winner, maxScore        
 
