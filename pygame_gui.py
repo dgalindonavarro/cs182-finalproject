@@ -19,6 +19,7 @@ class Game():
     def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", no_graphics=False, pixel_size=10):
 
         self.no_graphics = no_graphics == "True"
+        self.agent = agent
 
         # Setup dimensions of game
         self.pixel_size = pixel_size
@@ -143,15 +144,24 @@ class Game():
     # return the a tuple of string, score, of the team with the highest score. If a tie, return tie.
     def getWinner(self):
         maxScore = 0
+        otherScore = []
         winner = None
 
         for team in self.state.teams:
             score = team.getScore()
+            otherScore.append(score)
             if score > maxScore:
                 maxScore = score
                 winner = str(team.id)
             elif score == maxScore:
                 winner = "Tie"
+
+        otherScore.remove(maxScore)
+        if self.agent == "A":
+            fd = open('data/AB_Data.csv','a')
+            newLine = "\n" + str(len(self.state.teams)) + "," + str(len(self.state.teams[0].snakes)) + "," + winner  + "," + str(maxScore) + "," + str(otherScore[0])
+            fd.write(newLine)
+            fd.close()
 
         return winner, maxScore        
 
@@ -172,9 +182,9 @@ class Game():
 
                 # Update the game screen
                 self.updateDisplay()
-            else:
-                for team in self.state.teams:
-                    print "Team " + str(team.id) + ":", team.getScore()
+            # else:
+                # for team in self.state.teams:
+                #     print "Team " + str(team.id) + ":", team.getScore()
 
             currentState = self.state.deepCopy()
 

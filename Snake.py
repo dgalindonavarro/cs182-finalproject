@@ -24,6 +24,8 @@ class Snake():
 
     # Get the neighboring coordinate of the snake's head based on direction
     def getNewHeadPos(self, direction):
+        if not self.isAlive(): return "dead"
+
         if direction == "north":
             pos = (self.head[0], self.head[1] - 1)
         elif direction == "east":
@@ -58,6 +60,8 @@ class Snake():
     # Move the snake based on its current direction and given action
     def move(self, action):
         # Update snake's direction based on the action
+        if not self.isAlive(): return "dead"
+
         directions = self.getDirections()
         if action == "left" and self.direction != "north":
             self.direction = directions[directions.index(self.direction) - 1]

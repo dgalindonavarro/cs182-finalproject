@@ -15,6 +15,7 @@ class Team():
 			score += snake.length + len(snake.eaten)
 		return score
 
+
 	# Update a member of the team
 	def updateSnake(self, snake_id, index):
 		self.snakes[snake_id].updateSnake(index)

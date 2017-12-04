@@ -138,7 +138,7 @@ class GameState():
     def snakeCollision(self, snake1_id, team1_id, snake2_id, team2_id):
 
         snake1 = self.teams[team1_id].snakes[snake1_id]
-        snake2 = self.teams[team2_id].snakes[snake2_id]        
+        snake2 = self.teams[team2_id].snakes[snake2_id]
 
         # If on the same team
         if team1_id == team2_id:
@@ -154,7 +154,10 @@ class GameState():
             else:
                 # If head to head collision, both snakes retain only their heads
                 if snake1.head == snake2.head:
-                    return [(team1_id, snake1_id, 1), (team2_id, snake2_id, 1)]
+                    if len(snake1.position) == 1 and len(snake2.position) == 1:
+                        return [(team1_id, snake1_id, -1), (team2_id, snake2_id, -1)]
+                    else:
+                        return [(team1_id, snake1_id, 1), (team2_id, snake2_id, 1)]
                 # If one snake has crashed into the other's tail, cut off tail
                 elif snake1.head in snake2.position:
                     return [(team2_id, snake2_id, snake2.position.index(snake1.head))]
@@ -194,13 +197,15 @@ class GameState():
 
         for i in xrange(len(self.teams)):
             for j in xrange(len(self.teams[i].snakes)):
-                collisions += self.boardCollision(j, i)
-                for k in xrange(i, len(self.teams)):
-                    start_index = 0
-                    if i == k:
-                        start_index = j
-                    for l in xrange(start_index, len(self.teams[k].snakes)):
-                        collisions += self.snakeCollision(j, i, l, k)
+                if self.teams[i].snakes[j].isAlive():
+                    collisions += self.boardCollision(j, i)
+                    for k in xrange(i, len(self.teams)):
+                            start_index = 0
+                            if i == k:
+                                start_index = j
+                            for l in xrange(start_index, len(self.teams[k].snakes)):
+                                if self.teams[k].snakes[l].isAlive():
+                                    collisions += self.snakeCollision(j, i, l, k)
 
         return collisions
 

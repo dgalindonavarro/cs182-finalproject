@@ -235,8 +235,9 @@ class AlphaBetaAgent(Snake):
         self.agent_list = [(self.id, self.team_id)]
         for team in gameState.teams:
             for snake in team.snakes:
-                if not (snake.id == self.id and team.id == self.team_id):
-                    self.agent_list.append((snake.id, team.id))
+                if snake.isAlive():
+                    if not (snake.id == self.id and team.id == self.team_id):
+                        self.agent_list.append((snake.id, team.id))
         self.depth = 2 * len(self.agent_list)
         action = self.value(gameState, -float("inf") - 1, float("inf"), 0, 0)
         return action
