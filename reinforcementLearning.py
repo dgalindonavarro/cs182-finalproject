@@ -196,7 +196,10 @@ class QLearningAgent(Snake):
             The simulation should somehow ensure this is called
         """
         if not self.lastState is None:
-            reward = state.teams[self.team_id].getScore() - self.lastState.teams[self.team_id].getScore()
+        	if len(state.teams) > 1:
+        		reward = (state.teams[0].getScore() - state.teams[1].getScore()) - (self.lastState.teams[0].getScore() - self.lastState.teams[1].getScore())
+        	else:
+            	reward = state.teams[self.team_id].getScore() - self.lastState.teams[self.team_id].getScore()
             self.observeTransition(self.lastState, self.lastAction, state, reward)
         return state
 

@@ -16,8 +16,10 @@ from time import sleep
 class Game():
 
     # Initialize the game screen
-    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", no_graphics=False, pixel_size=10):
+    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", no_graphics=False, qLearning=False, episodes=100, pixel_size=10):
 
+        self.qLearning = qLearning == "True"
+        self.episodes = int(episodes)
         self.no_graphics = no_graphics == "True"
         self.agent = agent
 
@@ -38,6 +40,8 @@ class Game():
             for snake in xrange(int(snakes)):
                 if snake == 0 and team == 0 and user == "True":
                     agent_type = "U"
+                elif snake == 0 and team == 0 and qLearning:
+                    agent_type = "Q"
                 elif team == 0:
                     agent_type = agent
                 else:
@@ -176,48 +180,103 @@ class Game():
         (probably will be a while game.state = not_done loop or something)
         """
 
+        if self.qLearning:
+            episodes_completed = 0
+
+            qSnek = self.state.teams[0].snakes[0]
+
+            while episodes_completed < self.episodes:
+
+                qSnek.startEpisode()
+
+                while not self.game_over:
+                    if not self.no_graphics:
+                        #frances' gui saver
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                raise SystemExit
+
+                        # Update the game screen
+                        self.updateDisplay()
+                    # else:
+                        # for team in self.state.teams:
+                        #     print "Team " + str(team.id) + ":", team.getScore()
+
+                    currentState = self.state.deepCopy()
+
+                    # Iterate through each snake and tell it to move
+                    for team in self.state.teams:
+                        for snake in team.snakes:
+                            if snake.isAlive():
+                                snake.move(snake.getAction(currentState))
+
+                    # Update the game state based on snake movements (check collisions)
+                    self.state.update()
+
+                    self.observeTransition(self.state)
+
+                    if not qSnek.isAlive():
+                        self.gameOver == True
+
+                    # check if one team has been eliminated
+                    self.gameOver()
+
+                    # Update each teams' score
+                    for team in self.state.teams:
+                        #print team.getScore()
+                        pass
+                    # delay between timesteps
+                    # sleep(speed)
+
+                qSnek.stopEpisode()
+                episodes_completed += 1
+            # TODO: CLEAR THE GAME STATE AND PREPARE AN EPISODE, MAKE SURE TO KEEP QSNEK AS TEAM 0 SNAKE 0
+
+            print qSnek.qValues
+            return
+
         # number of timesteps to take
-        
-        while not self.game_over:
-            if not self.no_graphics:
-                #frances' gui saver
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        raise SystemExit
+        else: 
+            while not self.game_over:
+                if not self.no_graphics:
+                    #frances' gui saver
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            raise SystemExit
 
-                # Update the game screen
-                self.updateDisplay()
-            # else:
-                # for team in self.state.teams:
-                #     print "Team " + str(team.id) + ":", team.getScore()
+                    # Update the game screen
+                    self.updateDisplay()
+                # else:
+                    # for team in self.state.teams:
+                    #     print "Team " + str(team.id) + ":", team.getScore()
 
-            currentState = self.state.deepCopy()
+                currentState = self.state.deepCopy()
 
-            # Iterate through each snake and tell it to move
-            for team in self.state.teams:
-                for snake in team.snakes:
-                    if snake.isAlive():
-                        snake.move(snake.getAction(currentState))
+                # Iterate through each snake and tell it to move
+                for team in self.state.teams:
+                    for snake in team.snakes:
+                        if snake.isAlive():
+                            snake.move(snake.getAction(currentState))
 
-            # Update the game state based on snake movements (check collisions)
-            self.state.update()
-            # check if one team has been eliminated
-            self.gameOver()
+                # Update the game state based on snake movements (check collisions)
+                self.state.update()
+                # check if one team has been eliminated
+                self.gameOver()
 
-            # Update each teams' score
-            for team in self.state.teams:
-                #print team.getScore()
-                pass
-            # delay between timesteps
-            sleep(speed)
+                # Update each teams' score
+                for team in self.state.teams:
+                    #print team.getScore()
+                    pass
+                # delay between timesteps
+                sleep(speed)
 
-        # Game is Over. Display game over graphic that makes the player sad
-        print "Game Over! Sad!"
-        print ""
-        winner = self.getWinner()
-        print("Winner: Team " + winner[0])
-        print("Score: " + str(winner[1])) 
-        return
+            # Game is Over. Display game over graphic that makes the player sad
+            print "Game Over! Sad!"
+            print ""
+            winner = self.getWinner()
+            print("Winner: Team " + winner[0])
+            print("Score: " + str(winner[1])) 
+            return
 
 # Game initializer and Argument Option Parser
 game = Game(30, 30, *sys.argv[1:])
