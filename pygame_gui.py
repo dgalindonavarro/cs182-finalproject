@@ -16,12 +16,13 @@ from time import sleep
 class Game():
 
     # Initialize the game screen
-    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", no_graphics=False, qLearning=False, episodes=100, pixel_size=10):
+    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", functionId=1, no_graphics=False, qLearning=False, episodes=100, pixel_size=10):
 
         self.qLearning = qLearning == "True"
         self.episodes = int(episodes)
         self.no_graphics = no_graphics == "True"
         self.agent = agent
+        self.functionId = int(functionId)
 
         # Setup dimensions of game
         self.pixel_size = pixel_size
@@ -208,7 +209,7 @@ class Game():
                     for team in self.state.teams:
                         for snake in team.snakes:
                             if snake.isAlive():
-                                snake.move(snake.getAction(currentState))
+                                snake.move(snake.getAction(currentState, self.functionId))
 
                     # Update the game state based on snake movements (check collisions)
                     self.state.update()
@@ -256,7 +257,7 @@ class Game():
                 for team in self.state.teams:
                     for snake in team.snakes:
                         if snake.isAlive():
-                            snake.move(snake.getAction(currentState))
+                            snake.move(snake.getAction(currentState, self.functionId))
 
                 # Update the game state based on snake movements (check collisions)
                 self.state.update()
