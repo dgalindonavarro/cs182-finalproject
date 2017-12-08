@@ -249,10 +249,6 @@ class Game():
                     if not qSnek.isAlive():
                        self.game_over = True  
 
-
-                    if not qSnek.isAlive():
-                       self.game_over = True 
-
                     # Update each teams' score
                     for team in self.state.teams:
                         #print team.getScore()

@@ -79,7 +79,7 @@ class Snake():
             return []
 
     # return a random action
-    def getAction(self, state):
+    def getAction(self, state, functionID):
 
         action = random.choice(self.getActions())
 
@@ -159,7 +159,7 @@ class Snake():
 
 class UserAgent(Snake):
 
-    def getAction(self, gameState):
+    def getAction(self, gameState, functinID):
         actions = self.getActions()
         pressed = pygame.key.get_pressed()
         direction = self.direction
