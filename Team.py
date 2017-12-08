@@ -3,6 +3,7 @@ class Team():
 		self.id = id
 		self.snakes = []
 
+	# Equality check
 	def __eq__( self, other ):
 		if other == None:
 			return False
@@ -12,6 +13,7 @@ class Team():
 			if not self.snakes[snake] == other.snakes[snake]: return False
 		return True
 
+	# Make class hashable for q learning state value pairs
 	def __hash__(self):
 		return hash(hash(self.id) + 13 * hash(tuple(self.snakes)))
 
@@ -20,10 +22,6 @@ class Team():
 	def getScore(self):
 		score = 0
 		for snake in self.snakes:
-			# if snake.isAlive():
-			# 	score += len(snake.position) + len(snake.eaten)
-			# else:
-			# 	score += snake.final_score
 			score += snake.length + len(snake.eaten)
 		return score
 

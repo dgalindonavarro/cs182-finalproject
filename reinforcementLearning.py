@@ -15,7 +15,6 @@ import random, util, sys
 from util import manhattanDistance
 from GameState import *
 from Snake import Snake
-# from learningAgents import ReinforcementAgent
 from featureExtractors import *
 
 import random,util,math,numpy
@@ -104,16 +103,13 @@ class QLearningAgent(Snake):
 
 		return None
 
-	def getAction(self, state):
+	def getAction(self, state, functionId):
 		"""
 		  Compute the action to take in the current state.  With
 		  probability self.epsilon, we should take a random action and
 		  take the best policy action otherwise.  Note that if there are
 		  no legal actions, which is the case at the terminal state, you
 		  should choose None as the action.
-
-		  HINT: You might want to use util.flipCoin(prob)
-		  HINT: To pick randomly from a list, use random.choice(list)
 		"""
 		# Pick Action
 		actions = self.getActions()
@@ -140,8 +136,6 @@ class QLearningAgent(Snake):
 		  it will be called on your behalf
 		"""
 		"*** YOUR CODE HERE ***"
-		if state == nextState:
-			print 'True'
 		self.qValues[(state, action)] = (((1. - self.alpha)
 											* self.getQValue(state, action))
 											+ (self.alpha
@@ -155,14 +149,6 @@ class QLearningAgent(Snake):
 	def getValue(self, state):
 		return self.computeValueFromQValues(state)
 
-	# def getActions(self,state):
- #		"""
- #	  Get the actions available for a given
- #	  state. This is what you should use to
- #	  obtain legal actions for a state
- #	"""
- #	return self.actionFn(state)
-
 	def observeTransition(self, state,action,nextState,deltaReward):
 		# """
 		# 	Called by environment to inform agent that a transition has
@@ -175,12 +161,13 @@ class QLearningAgent(Snake):
 		self.update(state,action,nextState,deltaReward)
 
 	def startEpisode(self):
-	# """
-	#   Called by environment when new episode is starting
-	# """
+		"""
+		  Called by environment when new episode is starting
+		"""
 		self.lastState = None
 		self.lastAction = None
 		self.episodeRewards = 0.0
+
 	def stopEpisode(self):
 		"""
 		Called by environment when episode is done
@@ -207,7 +194,6 @@ class QLearningAgent(Snake):
 			The simulation should somehow ensure this is called
 		"""
 		if not self.lastState is None:
-			# print self.evaluationFunction(state), self.evaluationFunction(self.lastState)
 			reward = self.evaluationFunction(state) - self.evaluationFunction(self.lastState)
 			self.observeTransition(self.lastState, self.lastAction, state, reward)
 		return state
@@ -243,78 +229,6 @@ class QLearningAgent(Snake):
 		self.startEpisode()
 		if self.episodesSoFar == 0:
 			print 'Beginning %d episodes of Training' % (self.numTraining)
-
-	# def final(self, state):
-    #     """
-    #       Called by Pacman game at the terminal state
-    #     """
-    #     deltaReward = state.teams[self.team_id].getScore() - self.lastState.teams[self.team_id].getScore()
-    #     self.observeTransition(self.lastState, self.lastAction, state, deltaReward)
-    #     self.stopEpisode()
-
-    #     # Make sure we have this var
-    #     if not 'episodeStartTime' in self.__dict__:
-    #         self.episodeStartTime = time.time()
-    #     if not 'lastWindowAccumRewards' in self.__dict__:
-    #         self.lastWindowAccumRewards = 0.0
-    #     self.lastWindowAccumRewards += state.getScore()
-
-    #     NUM_EPS_UPDATE = 100
-    #     if self.episodesSoFar % NUM_EPS_UPDATE == 0:
-    #         print 'Reinforcement Learning Status:'
-    #         windowAvg = self.lastWindowAccumRewards / float(NUM_EPS_UPDATE)
-    #         if self.episodesSoFar <= self.numTraining:
-    #             trainAvg = self.accumTrainRewards / float(self.episodesSoFar)
-    #             print '\tCompleted %d out of %d training episodes' % (
-    #                    self.episodesSoFar,self.numTraining)
-    #             print '\tAverage Rewards over all training: %.2f' % (
-    #                     trainAvg)
-    #         else:
-    #             testAvg = float(self.accumTestRewards) / (self.episodesSoFar - self.numTraining)
-    #             print '\tCompleted %d test episodes' % (self.episodesSoFar - self.numTraining)
-    #             print '\tAverage Rewards over testing: %.2f' % testAvg
-    #         print '\tAverage Rewards for last %d episodes: %.2f'  % (
-    #                 NUM_EPS_UPDATE,windowAvg)
-    #         print '\tEpisode took %.2f seconds' % (time.time() - self.episodeStartTime)
-    #         self.lastWindowAccumRewards = 0.0
-    #         self.episodeStartTime = time.time()
-
-    #     if self.episodesSoFar == self.numTraining:
-    #         msg = 'Training Done (turning off epsilon and alpha)'
-    #         print '%s\n%s' % (msg,'-' * len(msg))
-
-
-
-# class PacmanQAgent(QLearningAgent):
-# 	"Exactly the same as QLearningAgent, but with different default parameters"
-
-# 	def __init__(self, epsilon=0.05,gamma=0.8,alpha=0.2, numTraining=0, **args):
-# 		"""
-# 		These default parameters can be changed from the pacman.py command line.
-# 		For example, to change the exploration rate, try:
-# 			python pacman.py -p PacmanQLearningAgent -a epsilon=0.1
-
-# 		alpha    - learning rate
-# 		epsilon  - exploration rate
-# 		gamma    - discount factor
-# 		numTraining - number of training episodes, i.e. no learning after these many episodes
-# 		"""
-# 		args['epsilon'] = epsilon
-# 		args['gamma'] = gamma
-# 		args['alpha'] = alpha
-# 		args['numTraining'] = numTraining
-# 		self.index = 0  # This is always Pacman
-# 		QLearningAgent.__init__(self, **args)
-
-# 	def getAction(self, state):
-# 		"""
-# 		Simply calls the getAction method of QLearningAgent and then
-# 		informs parent of action for Pacman.  Do not change or remove this
-# 		method.
-# 		"""
-# 		action = QLearningAgent.getAction(self,state)
-# 		self.doAction(state,action)
-# 		return action
 
 
 class ApproximateQAgent(QLearningAgent):
