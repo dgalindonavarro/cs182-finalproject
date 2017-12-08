@@ -19,6 +19,131 @@ import random, util, sys
 # from game import Agent
 from Snake import Snake
 
+class Agent(Snake):
+
+    def evaluationFunction(self, gameState, functionId):
+        if functionId == 1:
+            return self.evaluationFunction1(gameState)
+        elif functionId == 2:
+            return self.evaluationFunction2(gameState)
+        elif functionId == 3:
+            return self.evaluationFunction3(gameState)
+
+
+    def evaluationFunction1(self, gameState):
+        snake = gameState.teams[self.team_id].snakes[self.id]
+
+        if not snake.isAlive():
+            return -sys.maxint - 1
+        else: 
+            newPos = snake.head
+
+            # Get current score
+            score = gameState.teams[self.team_id].getScore()
+
+            # Get positions of all food elements
+            foodList = gameState.food
+
+            # Initialize distance to closest food
+            foodDistance = 0
+
+            # Iterate over food list to find closest distance to food
+            for index, food in enumerate(foodList):
+                if index == 0:
+                    foodDistance = manhattanDistance(newPos, food)
+                else:
+                    if manhattanDistance(newPos, food) < foodDistance:
+                        foodDistance = manhattanDistance(newPos, food)
+
+            return (score * 100) - foodDistance
+
+    def evaluationFunction2(self, gameState):
+
+        score = 0
+        totalFoodDistance = 0
+        snakesAlive = 0
+        teamSnakesAlive = 0
+        for team in gameState.teams:
+            if team.id == self.team_id:
+                score += team.getScore()
+            else:
+                score -= team.getScore()
+            for snake in team.snakes:
+                if snake.isAlive():
+                    foodDistance = 0
+                    for index, food in enumerate(gameState.food):
+                        foo = manhattanDistance(snake.head, food)
+                        if index == 0 or foo < foodDistance:
+                            foodDistance = foo
+
+                    if team.id == self.team_id:
+                        totalFoodDistance += foodDistance
+                        snakesAlive += 1
+                        teamSnakesAlive += 1
+                    else:
+                        totalFoodDistance -= foodDistance
+                        snakesAlive -= 1
+
+        if teamSnakesAlive == 0:
+            return -sys.maxint - 1
+
+        tailDistance = 0
+        if gameState.teams[self.team_id].snakes[self.id].isAlive():
+            head = gameState.teams[self.team_id].snakes[self.id].head
+            tail = gameState.teams[self.team_id].snakes[self.id].position[-1]
+        
+        return (score * 1000) - (totalFoodDistance * 10) + (snakesAlive * 5000)
+
+    def evaluationFunction3(self, gameState):
+
+        score = 0
+        totalFoodDistance = 0
+        snakesAlive = 0
+        teamSnakesAlive = 0
+        opponentsAlive = 0
+        distanceToSelf = 0
+        length = 0
+        distanceToWall = 0
+        for team in gameState.teams:
+            if team.id == self.team_id:
+                score += team.getScore()
+            else:
+                score -= team.getScore()
+            for snake in team.snakes:
+                if snake.isAlive():
+                    foodDistance = 0
+                    for index, food in enumerate(gameState.food):
+                        foo = manhattanDistance(snake.head, food)
+                        if index == 0 or foo < foodDistance:
+                            foodDistance = foo
+
+                    if team.id == self.team_id:
+                        totalFoodDistance += foodDistance
+                        teamSnakesAlive += 1
+                        if snake.id == self.id:
+                            length = snake.length
+                            for cell in snake.position:
+                                distanceToSelf += manhattanDistance(snake.head, cell)
+                            (x, y) = snake.head
+                            distanceToWall = max([x-0,gameState.width-x-1,y-0,gameState.height-y-1])
+                    else:
+                        totalFoodDistance -= foodDistance
+                        opponentsAlive -=1
+
+        if opponentsAlive == 0 and teamSnakesAlive > 0:
+            snakeAlive = 10
+        elif opponentsAlive == 0 and score >= 0:
+            snakesAlive = 10
+        elif teamSnakesAlive == 0:
+            return -sys.maxint - 1
+
+        snakesAlive = teamSnakesAlive - opponentsAlive
+        if length > 0:
+            distanceToSelf = distanceToSelf * 1.0 / length
+        else:
+            distanceToSelf = 0
+        return (score * 10000) - (totalFoodDistance * 100) + (snakesAlive * 50000) + (distanceToSelf * 50) + (distanceToWall * 50)
+
 class ReflexAgent(Snake):
     """
       A reflex agent chooses an action at each choice point by examining
@@ -30,7 +155,7 @@ class ReflexAgent(Snake):
     """
 
 
-    def getAction(self, gameState):
+    def getAction(self, gameState, functionId):
         """
         You do not need to change this method, but you're welcome to.
 
@@ -70,60 +195,40 @@ class ReflexAgent(Snake):
         """
         # Useful information you can extract from a GameState
         successorGameState = currentGameState.generateSuccessor(self.id, self.team_id, action)
-        newPos = successorGameState.teams[self.team_id].snakes[self.id].head
+        snake = successorGameState.teams[self.team_id].snakes[self.id]
 
-        if newPos == None:
-          return -sys.maxint - 1
-        # Get current score
-        score = successorGameState.teams[self.team_id].getScore()
+        if not snake.isAlive():
+            return -sys.maxint - 1
 
-        # Get positions of all food elements
-        foodList = successorGameState.food
+        else: 
+            newPos = snake.head
 
-        # Initialize distance to closest food
-        foodDistance = 0
+            # Get current score
+            score = successorGameState.teams[self.team_id].getScore()
 
-        # Iterate over food list to find closest distance to food
-        for index, food in enumerate(foodList):
-          if index == 0:
-            foodDistance = manhattanDistance(newPos, food)
-          else:
-            if manhattanDistance(newPos, food) < foodDistance:
-              foodDistance = manhattanDistance(newPos, food)
+            # Get positions of all food elements
+            foodList = successorGameState.food
 
-        # Return evaluation function
-        return (score * 100) - foodDistance
+            # Initialize distance to closest food
+            foodDistance = 0
 
-class MinimaxAgent(Snake):
+            # Iterate over food list to find closest distance to food
+            for index, food in enumerate(foodList):
+                if index == 0:
+                    foodDistance = manhattanDistance(newPos, food)
+                else:
+                    if manhattanDistance(newPos, food) < foodDistance:
+                        foodDistance = manhattanDistance(newPos, food)
+
+            # Return evaluation function
+            return (score * 100) - foodDistance
+
+class MinimaxAgent(Agent):
     """
       Your minimax agent (question 2)
     """
 
-    def evaluationFunction(self, gameState):
-        newPos = gameState.teams[self.team_id].snakes[self.id].head
-
-        if newPos == None:
-          return -sys.maxint - 1
-        # Get current score
-        score = gameState.teams[self.team_id].getScore()
-
-        # Get positions of all food elements
-        foodList = gameState.food
-
-        # Initialize distance to closest food
-        foodDistance = 0
-
-        # Iterate over food list to find closest distance to food
-        for index, food in enumerate(foodList):
-          if index == 0:
-            foodDistance = manhattanDistance(newPos, food)
-          else:
-            if manhattanDistance(newPos, food) < foodDistance:
-              foodDistance = manhattanDistance(newPos, food)
-
-        return (score * 100) - foodDistance
-
-    def getAction(self, gameState):
+    def getAction(self, gameState, functionId):
         """
           Returns the minimax action from the current gameState using self.depth
           and self.evaluationFunction.
@@ -137,6 +242,7 @@ class MinimaxAgent(Snake):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
+        self.functionId = functionId
         self.agent_list = [(self.id, self.team_id)]
         for team in gameState.teams:
             for snake in team.snakes:
@@ -148,7 +254,7 @@ class MinimaxAgent(Snake):
 
     def value(self, state, index, depth):
         if depth == self.depth or not state.teams[self.agent_list[index][1]].snakes[self.agent_list[index][0]].isAlive():
-            return self.evaluationFunction(state)
+            return self.evaluationFunction(state, self.functionId)
         else:
             if self.agent_list[index][1] == self.team_id:
                 return self.maxValue(state, index, depth)
@@ -185,74 +291,12 @@ class MinimaxAgent(Snake):
             v = min(v, newVal)
         return v
 
-class AlphaBetaAgent(Snake):
+class AlphaBetaAgent(Agent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
     """
 
-    def evaluationFunction(self, gameState):
-
-        score = 0
-        totalFoodDistance = 0
-        snakesAlive = 0
-        teamSnakesAlive = 0
-        for team in gameState.teams:
-            if team.id == self.team_id:
-                score += team.getScore()
-            else:
-                score -= team.getScore()
-            for snake in team.snakes:
-                if snake.isAlive():
-                    foodDistance = 0
-                    for index, food in enumerate(gameState.food):
-                        foo = manhattanDistance(snake.head, food)
-                        if index == 0 or foo < foodDistance:
-                            foodDistance = foo
-
-                    if team.id == self.team_id:
-                        totalFoodDistance += foodDistance
-                        snakesAlive += 1
-                        teamSnakesAlive += 1
-                    else:
-                        totalFoodDistance -= foodDistance
-                        snakesAlive -= 1
-
-        if teamSnakesAlive == 0:
-            return -sys.maxint - 1
-
-        tailDistance = 0
-        if gameState.teams[self.team_id].snakes[self.id].isAlive():
-            head = gameState.teams[self.team_id].snakes[self.id].head
-            tail = gameState.teams[self.team_id].snakes[self.id].position[-1]
-            tailDistance = manhattanDistance(head, tail)
-        
-        return (score * 1000) - (totalFoodDistance * 10) + (snakesAlive * 5000)            
-        # return (score * 1000) - (totalFoodDistance * 10) + (snakesAlive * 5000) - (tailDistance * 5)
-
-        # newPos = gameState.teams[self.team_id].snakes[self.id].head
-
-        # if newPos == None:
-        #   return -sys.maxint - 1
-        # # Get current score
-        # score = gameState.teams[self.team_id].getScore()
-
-        # # Get positions of all food elements
-        # foodList = gameState.food
-
-        # # Initialize distance to closest food
-        # foodDistance = 0
-
-        # # Iterate over food list to find closest distance to food
-        # for index, food in enumerate(foodList):
-        #   if index == 0:
-        #     foodDistance = manhattanDistance(newPos, food)
-        #   else:
-        #     if manhattanDistance(newPos, food) < foodDistance:
-        #       foodDistance = manhattanDistance(newPos, food)
-
-        # return (score * 100) - foodDistance
-
-    def getAction(self, gameState):
+    def getAction(self, gameState, functionId):
         """
           Returns the minimax action from the current gameState using self.depth
           and self.evaluationFunction.
@@ -270,6 +314,7 @@ class AlphaBetaAgent(Snake):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
+        self.functionId = functionId
         self.agent_list = [(self.id, self.team_id)]
         for team in gameState.teams:
             for snake in team.snakes:
@@ -282,7 +327,7 @@ class AlphaBetaAgent(Snake):
 
     def value(self, state, alpha, beta, index, depth):
         if depth == self.depth or not state.teams[self.agent_list[index][1]].snakes[self.agent_list[index][0]].isAlive():
-            return self.evaluationFunction(state)
+            return self.evaluationFunction(state, self.functionId)
         else:
             if self.agent_list[index][1] == self.team_id:
                 return self.maxValue(state, alpha, beta, index, depth)
@@ -326,36 +371,12 @@ class AlphaBetaAgent(Snake):
         return v
                   
 
-class ExpectimaxAgent(Snake):
+class ExpectimaxAgent(Agent):
     """
       Your expectimax agent (question 4)
     """
 
-    def evaluationFunction(self, gameState):
-        newPos = gameState.teams[self.team_id].snakes[self.id].head
-
-        if newPos == None:
-          return -sys.maxint - 1
-        # Get current score
-        score = gameState.teams[self.team_id].getScore()
-
-        # Get positions of all food elements
-        foodList = gameState.food
-
-        # Initialize distance to closest food
-        foodDistance = 0
-
-        # Iterate over food list to find closest distance to food
-        for index, food in enumerate(foodList):
-          if index == 0:
-            foodDistance = manhattanDistance(newPos, food)
-          else:
-            if manhattanDistance(newPos, food) < foodDistance:
-              foodDistance = manhattanDistance(newPos, food)
-
-        return (score * 100) - foodDistance
-
-    def getAction(self, gameState):
+    def getAction(self, gameState, functionId):
         """
           Returns the expectimax action using self.depth and self.evaluationFunction
 
@@ -363,18 +384,19 @@ class ExpectimaxAgent(Snake):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
+        self.functionId = functionId
         self.agent_list = [(self.id, self.team_id)]
         for team in gameState.teams:
             for snake in team.snakes:
                 if not (snake.id == self.id and team.id == self.team_id):
                     self.agent_list.append((snake.id, team.id))
-        self.depth = 1 * len(self.agent_list)
+        self.depth = 2 * len(self.agent_list)
         action = self.value(gameState, 0, 0)
         return action
 
     def value(self, state, index, depth):
         if depth == self.depth or not state.teams[self.agent_list[index][1]].snakes[self.agent_list[index][0]].isAlive():
-            return self.evaluationFunction(state)
+            return self.evaluationFunction(state, self.functionId)
         else:
             if self.agent_list[index][1] == self.team_id:
                 return self.maxValue(state, index, depth)
@@ -410,17 +432,3 @@ class ExpectimaxAgent(Snake):
             p = 1.0 / len(actions)
             v += newVal * p
         return v
-
-# def betterEvaluationFunction(currentGameState):
-#     """
-#       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
-#       evaluation function (question 5).
-
-#       DESCRIPTION: <write something here so we know what you did>
-#     """
-#     "*** YOUR CODE HERE ***"
-#     util.raiseNotDefined()
-
-# # Abbreviation
-# better = betterEvaluationFunction
-

@@ -8,6 +8,9 @@ from util import removeAdjacent
 class GameState():
     def __init__( self, num_teams, team_colors, width, height, obstacles=[]):
 
+        self.width = width
+        self.height = height
+
         # Create specified number of teams
         self.teams = []
         for i in xrange(num_teams):

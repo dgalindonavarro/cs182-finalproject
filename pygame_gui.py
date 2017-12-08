@@ -16,12 +16,15 @@ from time import sleep
 class Game():
 
     # Initialize the game screen
-    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", no_graphics=False, qLearning=False, episodes=100, pixel_size=10):
+    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", functionId=1, no_graphics=False, csv=False, qLearning=False, episodes=100, pixel_size=10):
 
+        self.csv = csv == "True"
         self.qLearning = qLearning == "True"
         self.episodes = int(episodes)
         self.no_graphics = no_graphics == "True"
         self.agent = agent
+        self.functionId = int(functionId)
+        print self.csv
 
         # Setup dimensions of game
         self.pixel_size = pixel_size
@@ -165,16 +168,12 @@ class Game():
                 winner = "Tie"
 
         otherScore.remove(maxScore)
-        # if self.agent == "E":
-        #     fd = open('data/Expectimax_Data_1v1.csv','a')
-        #     newLine = "\n" + str(len(self.state.teams)) + "," + str(len(self.state.teams[0].snakes)) + "," + winner  + "," + str(maxScore) + "," + str(otherScore[0])
-        #     fd.write(newLine)
-        #     fd.close()
-        # if self.agent == "A":
-        #     fd = open('data/AB_Data_Solo.csv','a')
-        #     newLine = "\n" + str(maxScore)
-        #     fd.write(newLine)
-        #     fd.close()
+
+        if self.csv:
+            fd = open('data/' + self.agent + '_Data_Eval' + str(self.functionId) + '.csv','a')
+            newLine = "\n" + str(len(self.state.teams)) + "," + str(len(self.state.teams[0].snakes)) + "," + winner  + "," + str(maxScore) + "," + str(otherScore[0])
+            fd.write(newLine)
+            fd.close()
 
         return winner, maxScore        
 
@@ -222,7 +221,7 @@ class Game():
                             print snake.position
                             print snake.head
                             if snake.isAlive():
-                                snake.move(snake.getAction(currentState))
+                                snake.move(snake.getAction(currentState, self.functionId))
 
                     # Update the game state based on snake movements (check collisions)
                     self.state.update()
@@ -277,7 +276,7 @@ class Game():
                 for team in self.state.teams:
                     for snake in team.snakes:
                         if snake.isAlive():
-                            snake.move(snake.getAction(currentState))
+                            snake.move(snake.getAction(currentState, self.functionId))
 
                 # Update the game state based on snake movements (check collisions)
                 self.state.update()
