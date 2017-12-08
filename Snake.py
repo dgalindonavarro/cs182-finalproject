@@ -147,7 +147,6 @@ class Snake():
 
     # Empty the snake's position and reset all values
     def die(self):
-        # self.final_score = len(self.position) + len(self.eaten)
         self.position = []
         self.head = None
         self.direction = None
