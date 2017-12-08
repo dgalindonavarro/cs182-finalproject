@@ -2,6 +2,7 @@ import pygame, random
 
 class Snake():
 
+    # Initialize ttributes belonging to each snake
     def __init__(self, id, team_id, color):
         self.id = id
         self.position = []
@@ -13,6 +14,7 @@ class Snake():
         self.eaten = []
         self.color = color
 
+    # Equivalence function to compare snake objects to each other efficiently
     def __eq__( self, other ):
         if other == None:
             return False
@@ -27,10 +29,12 @@ class Snake():
         for food in xrange(len(self.eaten)):
             if not self.eaten[food] == other.eaten[food]: return False
         return True
-
+    
+    # Hash function to ensure snake object is hashable
     def __hash__(self):
         return int((hash(tuple(self.position)) + 13*hash(self.id) + 113* hash(tuple(self.eaten)) + 7 * hash(self.direction)) % 1048575 )
 
+    # Efficient way of copying important attributes for snake object for Q-learning
     def deepCopy(self):
         snake = Snake(self.id, self.team_id, self.color)
         snake.position = self.position[:]
@@ -116,6 +120,7 @@ class Snake():
         if len(self.eaten) > 0 and self.position[-1] == self.eaten[0]:
             self.add_tail = True
 
+    # Return a snake to a given direction, position, eaten, and add_tail attribute list. (Store these before calling)
     def undoMove(self, direction, position, eaten, add_tail):
         self.direction = direction
         self.position = position
@@ -157,8 +162,11 @@ class Snake():
         if len(self.position) == 1:
             self.add_tail = True
 
+# Snake agent that takes its actions from keyboard input
 class UserAgent(Snake):
 
+    # Gets an action based on the arrow key being pressed down at the time this function is called.
+    # Converts up, down, left, right arrow keys into a valid forward, left, right action.
     def getAction(self, gameState, functinID):
         actions = self.getActions()
         pressed = pygame.key.get_pressed()
