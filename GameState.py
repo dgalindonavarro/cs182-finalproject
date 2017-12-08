@@ -6,6 +6,40 @@ from Team import Team
 from util import removeAdjacent
 
 class GameState():
+
+    def __eq__( self, other ):
+        """
+        Allows two states to be compared.
+        """
+        if other == None: return False
+        # TODO Check for type of other
+        if not len(self.teams) == len(other.teams): return False
+        for team in xrange(len(self.teams)):
+            if not len(self.teams[team].snakes) == len(other.teams[team].snakes): return False
+            for snake in xrange(len(self.teams[team].snakes)):
+                if not self.teams[team].snakes[snake] == other.teams[team].snakes[snake]: return False
+        if not self.food == other.food: return False
+        return True
+
+    def __hash__( self ):
+        """
+        Allows states to be keys of dictionaries.
+        """
+        for i, team in enumerate( self.teams ):
+            try:
+                int(hash(team))
+            except TypeError, e:
+                print e
+                #hash(state)
+            # for j, snake in enumerate( team.snakes ):
+            #     try:
+            #         int(hash(team))
+            #     except TypeError, e:
+            #         print e
+            #         #hash(state)
+        return int((hash(tuple(self.teams)) + 13*hash(tuple(self.food))) % 1048575 )
+
+
     def __init__( self, num_teams, team_colors, width, height, obstacles=[]):
 
         self.width = width
@@ -34,7 +68,11 @@ class GameState():
 
     # for duplicating the state (in case dicts become part of a State object)
     def deepCopy( self ):
-        state = copy.deepcopy(self)
+        state = GameState(len(self.teams), self.team_colors, self.width, self.height)
+        for team in xrange(len(self.teams)):
+            for snake in xrange(len(self.teams[team].snakes)):
+                state.teams[team].snakes.append(self.teams[team].snakes[snake].deepCopy())
+        state.food = self.food[:]
         return state
 
     # Update snake position list based on index

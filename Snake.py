@@ -13,6 +13,34 @@ class Snake():
         self.eaten = []
         self.color = color
 
+    def __eq__( self, other ):
+        if other == None:
+            return False
+        if not self.id == other.id: return False
+        if not self.team_id == other.team_id: return False
+        if not self.direction == other.direction: return False
+        if not self.add_tail == other.add_tail: return False
+        if not len(self.position) == len(other.position): return False
+        for cell in xrange(len(self.position)):
+            if not self.position[cell] == other.position[cell]: return False
+        if not len(self.eaten) == len(other.eaten): return False
+        for food in xrange(len(self.eaten)):
+            if not self.eaten[food] == other.eaten[food]: return False
+        return True
+
+    def __hash__(self):
+        return int((hash(tuple(self.position)) + 13*hash(self.id) + 113* hash(tuple(self.eaten)) + 7 * hash(self.direction)) % 1048575 )
+
+    def deepCopy(self):
+        snake = Snake(self.id, self.team_id, self.color)
+        snake.position = self.position[:]
+        snake.head = self.head
+        snake.length = self.length
+        snake.direction = self.direction
+        snake.add_tail = self.add_tail
+        snake.eaten = self.eaten[:]
+        return snake
+
     # Add new coordinate as the new head of snake
     def push(self, new):
         self.position.insert(0, new)
