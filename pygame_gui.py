@@ -174,6 +174,10 @@ class Game():
             newLine = "\n" + str(len(self.state.teams)) + "," + str(len(self.state.teams[0].snakes)) + "," + winner  + "," + str(maxScore) + "," + str(otherScore[0])
             fd.write(newLine)
             fd.close()
+            # fd = open('data/' + self.agent + '_1v1_Data_Eval' + str(self.functionId) + '.csv','a')
+            # newLine = "\n" + str(len(self.state.teams)) + "," + str(len(self.state.teams[0].snakes)) + "," + winner  + "," + str(maxScore) + "," + str(otherScore[0])
+            # fd.write(newLine)
+            # fd.close()
 
         return winner, maxScore        
 
@@ -287,7 +291,7 @@ class Game():
                 
                 currentState = self.state.deepCopy()
                 
-                print end - start
+                # print end - start
                 # Iterate through each snake and tell it to move
                 for team in self.state.teams:
                     for snake in team.snakes:
