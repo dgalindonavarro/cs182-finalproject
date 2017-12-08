@@ -40,8 +40,12 @@ class Game():
             for snake in xrange(int(snakes)):
                 if snake == 0 and team == 0 and user == "True":
                     agent_type = "U"
-                elif snake == 0 and team == 0 and qLearning:
-                    agent_type = "Q"
+                elif qLearning:
+                    if snake == 0 and team == 0:
+                        agent_type = "Q"
+                    else:
+                        # type of adversaries to train/employ Q learning against
+                        agent_type = "R"
                 elif team == 0:
                     agent_type = agent
                 else:
@@ -181,15 +185,23 @@ class Game():
         """
 
         if self.qLearning:
-            episodes_completed = 0
+            # games including training phase and deployment phase
+            games_run = 0
 
+            # qsnek is an easy way to reference the special snake being trained snake 0 on team 0
             qSnek = self.state.teams[0].snakes[0]
+            print 'Qsnek is beginning up to %d episodes of Training' % (qSnek.numTraining)
+            print 'Self.episodes = %d' % (self.episodes)
 
-            while episodes_completed < self.episodes:
-
+            while games_run < self.episodes:
+                print games_run
                 qSnek.startEpisode()
 
                 while not self.game_over:
+                    print "do a move!"
+                    # TO DO
+                    # if qsnek.isintraining == true, do not display screen. make go faster.
+
                     if not self.no_graphics:
                         #frances' gui saver
                         for event in pygame.event.get():
@@ -207,16 +219,20 @@ class Game():
                     # Iterate through each snake and tell it to move
                     for team in self.state.teams:
                         for snake in team.snakes:
+                            print snake.position
+                            print snake.head
                             if snake.isAlive():
                                 snake.move(snake.getAction(currentState))
 
                     # Update the game state based on snake movements (check collisions)
                     self.state.update()
 
-                    self.observeTransition(self.state)
+                    # update Q values for snek
+                    # observation function??
+                    qSnek.observationFunction(self.state)
 
                     if not qSnek.isAlive():
-                        self.gameOver == True
+                       self.game_over == True  
 
                     # check if one team has been eliminated
                     self.gameOver()
@@ -229,13 +245,18 @@ class Game():
                     # sleep(speed)
 
                 qSnek.stopEpisode()
-                episodes_completed += 1
-            # TODO: CLEAR THE GAME STATE AND PREPARE AN EPISODE, MAKE SURE TO KEEP QSNEK AS TEAM 0 SNAKE 0
+                games_run += 1
 
+                # RESET GAME STATE AS IT WAS INITIALLY, place the snakes on the board randomly to begin again
+                self.state.resetSnakes(5, self.width, self.height)
+                self.state.food = []
+                self.game_over = False
+
+            print "printing q snake values"
             print qSnek.qValues
             return
 
-        # number of timesteps to take
+        # Just run the game one time with non-q learning training and implementation
         else: 
             while not self.game_over:
                 if not self.no_graphics:

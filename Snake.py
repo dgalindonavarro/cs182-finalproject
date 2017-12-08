@@ -30,7 +30,7 @@ class Snake():
             pos = (self.head[0], self.head[1] - 1)
         elif direction == "east":
             pos = (self.head[0] + 1, self.head[1])
-        elif direction =="south":
+        elif direction == "south":
             pos = (self.head[0], self.head[1] + 1)
         else:
             pos = (self.head[0] - 1, self.head[1])

@@ -651,3 +651,21 @@ def unmutePrint():
     sys.stdout = _ORIGINAL_STDOUT
     #sys.stderr = _ORIGINAL_STDERR
 
+
+# utility function 
+# takes a list of tuples representing X,Y coordinates
+# removes a select coordinate from list, as well as all tuples immediately adjacent to it
+# returns list with items removed
+def removeAdjacent(grid, cor):
+    grid.remove(cor)
+    if (cor[0]+1, cor[1]+1) in grid: grid.remove( (cor[0]+1, cor[1]+1) )
+    if (cor[0], cor[1]+1)   in grid: grid.remove( (cor[0], cor[1]+1)  )
+    if (cor[0]-1, cor[1]+1) in grid: grid.remove( (cor[0]-1, cor[1]+1)  )
+    if (cor[0]-1, cor[1])   in grid: grid.remove( (cor[0]-1, cor[1])  )
+    if (cor[0]-1, cor[1]-1) in grid: grid.remove( (cor[0]-1, cor[1]-1)  )
+    if (cor[0], cor[1]-1)   in grid: grid.remove( (cor[0], cor[1]-1)  )
+    if (cor[0]+1, cor[1]-1) in grid: grid.remove( (cor[0]+1, cor[1]-1)  )
+    if (cor[0]+1, cor[1])   in grid: grid.remove( (cor[0]+1, cor[1])  )
+
+    return grid
+

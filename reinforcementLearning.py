@@ -12,7 +12,7 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-from game import *
+from GameState import *
 from Snake import Snake
 # from learningAgents import ReinforcementAgent
 # from featureExtractors import *
@@ -39,21 +39,29 @@ class QLearningAgent(Snake):
 		- self.getLegalActions(state)
 		  which returns legal actions for a state
 	"""
-	def __init__(self, actionFn = None, numTraining=100, epsilon=0.5, alpha=0.5, gamma=1):
-		"You can initialize Q-values here..."
-		# ReinforcementAgent.__init__(self, **args)
+	def __init__(self, id, team_id, color, actionFn = None, numTraining=100, epsilon=0.5, alpha=0.5, gamma=1):
+		# OUR OTHER SNAKE CLASS MEMBERS (same as other types of snakes)
+		self.id = id
+		self.position = []
+		self.head = False
+		self.length = 0
+		self.direction = None
+		self.team_id = team_id
+		self.add_tail = False
+		self.eaten = []
+		self.color = color
 
-		"*** YOUR CODE HERE ***"
 		if actionFn == None:
-            actionFn = self.getActions
-        self.actionFn = actionFn
-        self.episodesSoFar = 0
-        self.accumTrainRewards = 0.0
-        self.accumTestRewards = 0.0
-        self.numTraining = int(numTraining)
-        self.epsilon = float(epsilon)
-        self.alpha = float(alpha)
-        self.discount = float(gamma)
+			actionFn = self.getActions()
+
+		self.actionFn = actionFn
+		self.episodesSoFar = 0
+		self.accumTrainRewards = 0.0
+		self.accumTestRewards = 0.0
+		self.numTraining = int(numTraining)
+		self.epsilon = float(epsilon)
+		self.alpha = float(alpha)
+		self.discount = float(gamma)
 
 		self.qValues = {}
 
@@ -77,7 +85,7 @@ class QLearningAgent(Snake):
 		  terminal state, you should return a value of 0.0.
 		"""
 		"*** YOUR CODE HERE ***"
-		actions = self.getActions(state)
+		actions = self.getActions()
 		if actions:
 			return max([self.getQValue(state, action) for action in actions])
 		return 0.
@@ -144,71 +152,67 @@ class QLearningAgent(Snake):
 		return self.computeValueFromQValues(state)
 
 	# def getActions(self,state):
- #        """
- #          Get the actions available for a given
- #          state. This is what you should use to
- #          obtain legal actions for a state
- #        """
- #        return self.actionFn(state)
+ #		"""
+ #	  Get the actions available for a given
+ #	  state. This is what you should use to
+ #	  obtain legal actions for a state
+ #	"""
+ #	return self.actionFn(state)
 
-    def observeTransition(self, state,action,nextState,deltaReward):
-        """
-            Called by environment to inform agent that a transition has
-            been observed. This will result in a call to self.update
-            on the same arguments
+	def observeTransition(self, state,action,nextState,deltaReward):
+		# """
+		# 	Called by environment to inform agent that a transition has
+		# 	been observed. This will result in a call to self.update
+		# 	on the same arguments
 
-            NOTE: Do *not* override or call this function
-        """
-        self.episodeRewards += deltaReward
-        self.update(state,action,nextState,deltaReward)
+		# 	Note: Do *not* override or call this function
+		# """
+		self.episodeRewards += deltaReward
+		self.update(state,action,nextState,deltaReward)
 
-    def startEpisode(self):
-        """
-          Called by environment when new episode is starting
-        """
-        self.lastState = None
-        self.lastAction = None
-        self.episodeRewards = 0.0
+	def startEpisode(self):
+	# """
+	#   Called by environment when new episode is starting
+	# """
+		self.lastState = None
+		self.lastAction = None
+		self.episodeRewards = 0.0
+	def stopEpisode(self):
+		"""
+		Called by environment when episode is done
+		"""
+		if self.episodesSoFar < self.numTraining:
+			self.accumTrainRewards += self.episodeRewards
+		else:
+			self.accumTestRewards += self.episodeRewards
+			self.episodesSoFar += 1
+			if self.episodesSoFar >= self.numTraining:
+				# Take off the training wheels
+				self.epsilon = 0.0 		# no exploration
+				self.alpha = 0.0	   # no learning
 
-    def stopEpisode(self):
-        """
-          Called by environment when episode is done
-        """
-        if self.episodesSoFar < self.numTraining:
-            self.accumTrainRewards += self.episodeRewards
-        else:
-            self.accumTestRewards += self.episodeRewards
-        self.episodesSoFar += 1
-        if self.episodesSoFar >= self.numTraining:
-            # Take off the training wheels
-            self.epsilon = 0.0    # no exploration
-            self.alpha = 0.0      # no learning
+	def isInTraining(self):
+		return self.episodesSoFar < self.numTraining
 
-    def isInTraining(self):
-        return self.episodesSoFar < self.numTraining
+	def isInTesting(self):
+		return not self.isInTraining()
 
-    def isInTesting(self):
-        return not self.isInTraining()
+	def observationFunction(self, state):
+		"""
+			This is where we ended up after our last action.
+			The simulation should somehow ensure this is called
+		"""
+		if not self.lastState is None:
+			reward = state.teams[self.team_id].getScore() - self.lastState.teams[self.team_id].getScore()
+			self.observeTransition(self.lastState, self.lastAction, state, reward)
+		return state
 
-    def observationFunction(self, state):
-        """
-            This is where we ended up after our last action.
-            The simulation should somehow ensure this is called
-        """
-        if not self.lastState is None:
-        	if len(state.teams) > 1:
-        		reward = (state.teams[0].getScore() - state.teams[1].getScore()) - (self.lastState.teams[0].getScore() - self.lastState.teams[1].getScore())
-        	else:
-            	reward = state.teams[self.team_id].getScore() - self.lastState.teams[self.team_id].getScore()
-            self.observeTransition(self.lastState, self.lastAction, state, reward)
-        return state
+	def registerInitialState(self, state):
+		self.startEpisode()
+		if self.episodesSoFar == 0:
+			print 'Beginning %d episodes of Training' % (self.numTraining)
 
-    def registerInitialState(self, state):
-        self.startEpisode()
-        if self.episodesSoFar == 0:
-            print 'Beginning %d episodes of Training' % (self.numTraining)
-
-    # def final(self, state):
+	# def final(self, state):
     #     """
     #       Called by Pacman game at the terminal state
     #     """

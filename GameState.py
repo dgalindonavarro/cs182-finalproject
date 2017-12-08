@@ -1,7 +1,9 @@
 import random, copy
 from multiAgents import ReflexAgent, MinimaxAgent, AlphaBetaAgent, ExpectimaxAgent
+from reinforcementLearning import QLearningAgent
 from Snake import Snake, UserAgent
 from Team import Team
+from util import removeAdjacent
 
 class GameState():
     def __init__( self, num_teams, team_colors, width, height, obstacles=[]):
@@ -36,6 +38,57 @@ class GameState():
     def updateSnake(self, team_id, snake_id, index):
         ### Maybe add an is Dead check to other functions later? ###
         self.teams[team_id].updateSnake(snake_id, index)
+
+    # Reset all snakes currently in GameState to a given length, isAlive state, random position
+    # takes length of desired snake, width and height of gameboard
+    def resetSnakes(self, length, width, height):
+        openspots = [x for x in self.legalPositions]
+        for team in self.teams:
+            for snake in team.snakes:
+                snake.position = []
+                snake.isAlive = True
+
+                # Sample head until it is not in a taken position
+                head = (int(random.uniform(length, width - length)) , int(random.uniform(length, height - length)))
+
+                while(head not in openspots):
+                    head = (int(random.uniform(length, width - length)) , int(random.uniform(length, height - length)))
+
+                # Add head to snake
+                snake.push(head)
+                openspots = removeAdjacent(openspots, snake.head)
+
+                # Get a random direction for the snek to face. Ensure snake can be extended in proper direction.
+                snake.direction = random.choice(snake.getDirections())
+                                                           
+                # Add rest of snek depending on direction it is facing. 
+                cur = snake.head
+                if snake.direction == "north":
+                    for i in range(length - 1):
+                        cur = (cur[0], cur[1]-1)
+                        snake.position.append(cur)
+                        if cur in openspots:
+                            removeAdjacent(openspots, cur)
+                elif snake.direction == "east":
+                    for i in range(length - 1):
+                        cur = (cur[0]-1, cur[1])
+                        snake.position.append(cur)
+                        if cur in openspots:
+                            removeAdjacent(openspots, cur) 
+                elif snake.direction == "south":
+                    for i in range(length - 1):
+                        cur = (cur[0], cur[1]+1)
+                        snake.position.append(cur)
+                        if cur in openspots:
+                            removeAdjacent(openspots, cur)
+                elif snake.direction == "west":
+                    for i in range(length - 1):
+                        cur = (cur[0]+1, cur[1])
+                        snake.position.append(cur)
+                        if cur in openspots:
+                            removeAdjacent(openspots, cur)
+
+                snake.length = length
 
     # Update and check collisions
     def update(self):
@@ -72,11 +125,14 @@ class GameState():
             snek = AlphaBetaAgent(snek_id, team_id, self.team_colors[team_id])
         elif agent == "E":
             snek = ExpectimaxAgent(snek_id, team_id, self.team_colors[team_id])
-        else:
+        elif agent == "R":
             snek = ReflexAgent(snek_id, team_id, self.team_colors[team_id])
+        elif agent == 'Q':
+            snek = QLearningAgent(snek_id, team_id, self.team_colors[team_id])
         head = None
 
         # Get list of positions that are next to or on top of any other snakes as to avoid placing new head there
+        # COULD BE RE-WRITTEN MORE EFFICIENTLY WITH SELF.LEGALPOSITIONS
         taken_positions = []
         list_of_snakes = []
         for team in self.teams:
@@ -111,7 +167,7 @@ class GameState():
         cur = head
         if facing == "south":
             for i in range(length - 1):
-                cur = (cur[0], cur[1]-1)
+                cur = (cur[0], cur[1]+1)
                 snek.position.append(cur)
         if facing == "east":
             for i in range(length - 1):
@@ -119,7 +175,7 @@ class GameState():
                 snek.position.append(cur) 
         if facing == "north":
             for i in range(length - 1):
-                cur = (cur[0], cur[1]+1)
+                cur = (cur[0], cur[1]-1)
                 snek.position.append(cur)   
         if facing == "west":
             for i in range(length - 1):
