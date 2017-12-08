@@ -15,7 +15,7 @@
 from GameState import *
 from Snake import Snake
 # from learningAgents import ReinforcementAgent
-# from featureExtractors import *
+from featureExtractors import *
 
 import random,util,math,numpy
 
@@ -286,58 +286,141 @@ class QLearningAgent(Snake):
 # 		return action
 
 
-# class ApproximateQAgent(PacmanQAgent):
-# 	"""
-# 	   ApproximateQLearningAgent
+class ApproximateQAgent(QLearningAgent):
+ 	"""
+ 	   ApproximateQLearningAgent
 
-# 	   You should only have to overwrite getQValue
-# 	   and update.  All other QLearningAgent functions
-# 	   should work as is.
-# 	"""
-# 	def __init__(self, extractor='IdentityExtractor', **args):
-# 		self.featExtractor = util.lookup(extractor, globals())()
-# 		PacmanQAgent.__init__(self, **args)
-# 		self.weights = util.Counter()
+ 	   You should only have to overwrite getQValue
+ 	   and update.  All other QLearningAgent functions
+ 	   should work as is.
+ 	"""
+ 	def __init__(self, id, team_id, color, extractor='IdentityExtractor', **args):
 
-# 	def getWeights(self):
-# 		return self.weights
+		self.qValues = {}
 
-# 	def getQValue(self, state, action):
-# 		"""
-# 		  Should return Q(state,action) = w * featureVector
-# 		  where * is the dotProduct operator
-# 		"""
-# 		"*** YOUR CODE HERE ***"
-# 		features = self.featExtractor.getFeatures(state, action)
-# 		q = 0.
-# 		for feature in features:
-# 			if feature in self.getWeights():
-# 				q += self.weights[feature] * features[feature]
-# 		return q
+ 		#self.featExtractor = util.lookup(extractor, globals())()
+ 		QLearningAgent.__init__(self, id, team_id, color, **args)
+ 		self.weights = util.Counter()
 
-# 	def update(self, state, action, nextState, reward):
-# 		"""
-# 		   Should update your weights based on transition
-# 		"""
-# 		"*** YOUR CODE HERE ***"
-# 		features = self.featExtractor.getFeatures(state, action)
-# 		weights = self.weights.copy()
-# 		for feature in features:
-# 			weight = 0
-# 			if feature in self.weights:
-# 				weight = self.weights[feature]
-# 			difference = (reward + (self.discount * self.getValue(nextState))
-# 								- self.getQValue(state, action))
-# 			weights[feature] = weight + (self.alpha * difference * features[feature])
-# 		self.weights = weights
+ 	def getWeights(self):
+ 		return self.weights
 
-# 	def final(self, state):
-# 		"Called at the end of each game."
-# 		# call the super-class final method
-# 		PacmanQAgent.final(self, state)
+ 	def getQValue(self, state, action):
+ 		"""
+ 		  Should return Q(state,action) = w * featureVector
+ 		  where * is the dotProduct operator
+ 		"""
+ 		"*** YOUR CODE HERE ***"
+ 		features = self.getFeatures(state, action)
+ 		q = 0.
+ 		for feature in features:
+ 			if feature in self.getWeights():
+ 				q += self.weights[feature] * features[feature]
+ 		return q
 
-# 		# did we finish training?
-# 		if self.episodesSoFar == self.numTraining:
-# 			# you might want to print your weights here for debugging
-# 			"*** YOUR CODE HERE ***"
-# 			pass
+ 	def update(self, state, action, nextState, reward):
+ 		"""
+ 		   Should update your weights based on transition
+ 		"""
+ 		"*** YOUR CODE HERE ***"
+		
+ 		features = self.getFeatures(state, action)
+ 		weights = self.weights.copy()
+ 		for feature in features:
+ 			weight = 0
+ 			if feature in self.weights:
+ 				weight = self.weights[feature]
+ 			difference = (reward + (self.discount * self.getValue(nextState))
+ 								- self.getQValue(state, action))
+ 			weights[feature] = weight + (self.alpha * difference * features[feature])
+ 		self.weights = weights
+
+ 	def final(self, state):
+ 		"Called at the end of each game."
+ 		# call the super-class final method
+ 		PacmanQAgent.final(self, state)
+
+ 		# did we finish training?
+ 		if self.episodesSoFar == self.numTraining:
+ 			# you might want to print your weights here for debugging
+ 			"*** YOUR CODE HERE ***"
+ 			pass
+
+	def getFeatures(self, state, action):
+		# extract the grid of food and wall locations and get the ghost locations
+		food = state.food
+		legalPositions = state.legalPositions
+		qSnake = state.teams[0].snakes[0]
+
+		enemysnakes = []
+		# assuming only ever Team 1, Snake 1 is learning
+		for team in state.teams[1:]:
+			for snake in team.snakes:
+				enemysnakes = enemysnakes + snake.position
+
+		friendlies = []
+		for snake in state.teams[0].snakes[1:]:
+			friendlies = friendlies + snake.position
+
+		features = util.Counter()
+
+		features["bias"] = 1.0
+
+		# compute the location of snake after he takes the action
+		oldhead = qSnake.head
+		olddirection, oldposition, oldeaten, oldadd_tail, oldfood = state.executeMove(0, 0, action)
+		
+		newdirection = qSnake.direction
+		neweaten = qSnake.eaten
+		newhead = qSnake.head
+		newposition = qSnake.position
+		neweaten = qSnake.eaten
+		
+		if qSnake.isAlive():
+			features["isLiving"] = 1.0
+			features["score"] = state.teams[0].getScore()*100.0
+
+			state.undoMove(0, 0, olddirection, oldposition, oldeaten, oldadd_tail, oldfood)
+			
+			#radius of compactness
+			r = int(qSnake.length/5) 
+
+			# measure the compactness of the snake
+			# surrounding blocks
+			radius = []
+			for i in range(-r, r+1):
+				for j in range(-r, r+1):
+					point = (newhead[0] + r, newhead[1] + r)
+					if point in legalPositions:
+						radius.append(point)
+
+			tailsclose = 0
+			for tail in newposition: 
+				if tail in radius: 
+					tailsclose += 1
+			if len(radius) != 0:
+				compact = float(tailsclose)/float(len(radius))
+			else:
+				compact = 0
+
+			features["Snake Compactness"] = compact*10
+
+			# if snake is not too compact then add distance to food
+			if compact < 0.5:
+				# Initialize distance to closest food
+				foodDistance = 0
+
+				# Iterate over food list to find closest distance to food
+				for index, f in enumerate(food):
+					if index == 0:
+						foodDistance = util.manhattanDistance(newhead, f)
+					else:
+						if util.manhattanDistance(newPos, f) < foodDistance:
+							foodDistance = util.manhattanDistance(newhead, f)
+
+				features["Dist to Food"] = foodDistance
+		else:
+			features["isLiving"] = 0
+
+		features.divideAll(10.0)
+		return features

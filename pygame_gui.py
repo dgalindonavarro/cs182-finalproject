@@ -242,12 +242,13 @@ class Game():
                     # observation function??
                     qSnek.observationFunction(self.state)
                     
-
-                    if not qSnek.isAlive():
-                       self.game_over == True  
-
                     # check if one team has been eliminated
                     self.gameOver()
+
+                    # stop training if Q snake dies
+                    if not qSnek.isAlive():
+                       self.game_over = True  
+
 
                     # Update each teams' score
                     for team in self.state.teams:
@@ -256,7 +257,7 @@ class Game():
                     # delay between timesteps
                     sleep(speed)
                    
-
+                print "Dict Length: ", len(qSnek.qValues)
                 qSnek.stopEpisode()
                 winner = self.getWinner()
                 print("Winner: Team " + winner[0])

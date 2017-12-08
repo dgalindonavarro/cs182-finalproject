@@ -1,6 +1,6 @@
 import random, copy
 from multiAgents import ReflexAgent, MinimaxAgent, AlphaBetaAgent, ExpectimaxAgent
-from reinforcementLearning import QLearningAgent
+from reinforcementLearning import QLearningAgent, ApproximateQAgent
 from Snake import Snake, UserAgent
 from Team import Team
 from util import removeAdjacent
@@ -132,7 +132,8 @@ class GameState():
         elif agent == "R":
             snek = ReflexAgent(snek_id, team_id, self.team_colors[team_id])
         elif agent == 'Q':
-            snek = QLearningAgent(snek_id, team_id, self.team_colors[team_id])
+            #snek = QLearningAgent(snek_id, team_id, self.team_colors[team_id])
+            snek = ApproximateQAgent(snek_id, team_id, self.team_colors[team_id])
         head = None
 
         # Get list of positions that are next to or on top of any other snakes as to avoid placing new head there
