@@ -1,4 +1,4 @@
-import sys, pygame, util, random, argparse, cProfile
+import sys, pygame, util, random, argparse, cProfile, copy
 from GameState import GameState
 from Snake import Snake
 from time import sleep
@@ -224,7 +224,7 @@ class Game():
                     for team in self.state.teams:
                         for snake in team.snakes:
                             if snake.isAlive() and snake.head == qSnek.head:
-                                actions[(team.id, snake.id)] = snake.getAction(self.state)
+                                actions[(team.id, snake.id)] = snake.getAction(self.state.deepCopy())
                             elif snake.isAlive():
                                 actions[(team.id, snake.id)] = snake.getAction(self.state, self.functionId)
                     
@@ -250,6 +250,9 @@ class Game():
                        self.game_over = True  
 
 
+                    if not qSnek.isAlive():
+                       self.game_over = True 
+
                     # Update each teams' score
                     for team in self.state.teams:
                         #print team.getScore()
@@ -260,8 +263,8 @@ class Game():
                 print "Dict Length: ", len(qSnek.qValues)
                 qSnek.stopEpisode()
                 winner = self.getWinner()
-                print("Winner: Team " + winner[0])
-                print("Score: " + str(winner[1])) 
+                # print("Winner: Team " + winner[0])
+                # print("Score: " + str(winner[1])) 
                 games_run += 1
 
                 # RESET GAME STATE AS IT WAS INITIALLY, place the snakes on the board randomly to begin again
@@ -270,8 +273,8 @@ class Game():
                 self.game_over = False
                 self.state.addRandoFood()
 
-            print "printing q snake values"
-            print qSnek.qValues
+            # print "printing q snake values"
+            # print qSnek.qValues
             return
 
         # Just run the game one time with non-q learning training and implementation

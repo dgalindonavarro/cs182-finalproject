@@ -11,7 +11,8 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
-
+import random, util, sys
+from util import manhattanDistance
 from GameState import *
 from Snake import Snake
 # from learningAgents import ReinforcementAgent
@@ -39,7 +40,7 @@ class QLearningAgent(Snake):
 		- self.getLegalActions(state)
 		  which returns legal actions for a state
 	"""
-	def __init__(self, id, team_id, color, actionFn = None, numTraining=100, epsilon=0.5, alpha=0.5, gamma=1):
+	def __init__(self, id, team_id, color, actionFn = None, numTraining=100, epsilon=0.5, alpha=0.3, gamma=0.9):
 		# OUR OTHER SNAKE CLASS MEMBERS (same as other types of snakes)
 		self.id = id
 		self.position = []
@@ -139,6 +140,8 @@ class QLearningAgent(Snake):
 		  it will be called on your behalf
 		"""
 		"*** YOUR CODE HERE ***"
+		if state == nextState:
+			print 'True'
 		self.qValues[(state, action)] = (((1. - self.alpha)
 											* self.getQValue(state, action))
 											+ (self.alpha
@@ -204,9 +207,37 @@ class QLearningAgent(Snake):
 			The simulation should somehow ensure this is called
 		"""
 		if not self.lastState is None:
-			reward = state.teams[self.team_id].getScore() - self.lastState.teams[self.team_id].getScore()
+			# print self.evaluationFunction(state), self.evaluationFunction(self.lastState)
+			reward = self.evaluationFunction(state) - self.evaluationFunction(self.lastState)
 			self.observeTransition(self.lastState, self.lastAction, state, reward)
 		return state
+
+	def evaluationFunction(self, state):
+		snake = state.teams[self.team_id].snakes[self.id]
+
+		if not snake.isAlive():
+			return -sys.maxint - 1
+		else: 
+			newPos = snake.head
+
+			# Get current score
+			score = state.teams[self.team_id].getScore()
+
+			# Get positions of all food elements
+			foodList = state.food
+
+			# Initialize distance to closest food
+			foodDistance = 0
+
+			# Iterate over food list to find closest distance to food
+			for index, food in enumerate(foodList):
+				if index == 0:
+					foodDistance = manhattanDistance(newPos, food)
+				else:
+					if manhattanDistance(newPos, food) < foodDistance:
+						foodDistance = manhattanDistance(newPos, food)
+
+			return (score * 100) - foodDistance
 
 	def registerInitialState(self, state):
 		self.startEpisode()
