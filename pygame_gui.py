@@ -219,8 +219,10 @@ class Game():
                     actions = {}
                     for team in self.state.teams:
                         for snake in team.snakes:
-                            if snake.isAlive():
+                            if snake.isAlive() and snake.head == qSnek.head:
                                 actions[(team.id, snake.id)] = snake.getAction(self.state)
+                            elif snake.isAlive():
+                                actions[(team.id, snake.id)] = snake.getAction(self.state, self.functionId)
                     
                     for team in self.state.teams:
                         for snake in team.snakes:

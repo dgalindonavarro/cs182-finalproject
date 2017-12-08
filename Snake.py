@@ -51,7 +51,7 @@ class Snake():
             return []
 
     # return a random action
-    def getAction(self, state, functionId):
+    def getAction(self, state):
 
         action = random.choice(self.getActions())
 
