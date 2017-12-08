@@ -1,7 +1,7 @@
-import sys, pygame, util, random, argparse, cProfile, time
+import sys, pygame, util, random, argparse, cProfile
 from GameState import GameState
 from Snake import Snake
-#from time import sleep
+from time import sleep
 
 # misc. functions (not sure where these make most sense to eventually place)
 
@@ -190,10 +190,9 @@ class Game():
             # qsnek is an easy way to reference the special snake being trained snake 0 on team 0
             qSnek = self.state.teams[0].snakes[0]
             print 'Qsnek is beginning up to %d episodes of Training' % (qSnek.numTraining)
-            print 'Self.episodes = %d' % (self.episodes)
 
             while games_run < self.episodes:
-                print games_run
+                print "Game Number", games_run
                 qSnek.startEpisode()
 
                 while not self.game_over:
@@ -212,18 +211,21 @@ class Game():
                     # else:
                         # for team in self.state.teams:
                         #     print "Team " + str(team.id) + ":", team.getScore()
-                    start = time.time()
-                    currentState = self.state.deepCopy()
-                    end = time.time()
-                    print end - start
+                    
+                    # currentState = self.state.deepCopy()
 
                     # Iterate through each snake and tell it to move
+                    
+                    actions = {}
+                    for team in self.state.teams:
+                        for snake in team.snakes:
+                            if snake.isAlive():
+                                actions[(team.id, snake.id)] = snake.getAction(self.state)
                     
                     for team in self.state.teams:
                         for snake in team.snakes:
                             if snake.isAlive():
-                                snake.move(snake.getAction(currentState))
-                    
+                                snake.move(actions[(team.id, snake.id)])
                            
 
                     # Update the game state based on snake movements (check collisions)
@@ -246,16 +248,20 @@ class Game():
                         #print team.getScore()
                         pass
                     # delay between timesteps
-                    # sleep(speed)
+                    sleep(speed)
                    
 
                 qSnek.stopEpisode()
+                winner = self.getWinner()
+                print("Winner: Team " + winner[0])
+                print("Score: " + str(winner[1])) 
                 games_run += 1
 
                 # RESET GAME STATE AS IT WAS INITIALLY, place the snakes on the board randomly to begin again
                 self.state.resetSnakes(5, self.width, self.height)
                 self.state.food = []
                 self.game_over = False
+                self.state.addRandoFood()
 
             print "printing q snake values"
             print qSnek.qValues
@@ -296,7 +302,7 @@ class Game():
                     #print team.getScore()
                     pass
                 # delay between timesteps
-                time.sleep(speed)
+                sleep(speed)
 
             # Game is Over. Display game over graphic that makes the player sad
             print "Game Over! Sad!"
