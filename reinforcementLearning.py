@@ -100,6 +100,7 @@ class QLearningAgent(Snake):
 		actions = self.getActions()
 		if actions:
 			return actions[numpy.argmax([self.getQValue(state, action) for action in actions])]
+
 		return None
 
 	def getAction(self, state):

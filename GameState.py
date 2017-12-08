@@ -49,7 +49,6 @@ class GameState():
         for team in self.teams:
             for snake in team.snakes:
                 snake.position = []
-                snake.isAlive = True
 
                 # Sample head until it is not in a taken position
                 head = (int(random.uniform(length, width - length)) , int(random.uniform(length, height - length)))
@@ -92,6 +91,8 @@ class GameState():
                             removeAdjacent(openspots, cur)
 
                 snake.length = length
+                snake.add_tail = False
+                snake.eaten = []
 
     # Update and check collisions
     def update(self):

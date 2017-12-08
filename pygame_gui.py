@@ -1,7 +1,7 @@
-import sys, pygame, util, random, argparse, cProfile
+import sys, pygame, util, random, argparse, cProfile, time
 from GameState import GameState
 from Snake import Snake
-from time import sleep
+#from time import sleep
 
 # misc. functions (not sure where these make most sense to eventually place)
 
@@ -24,7 +24,7 @@ class Game():
         self.no_graphics = no_graphics == "True"
         self.agent = agent
         self.functionId = int(functionId)
-        print self.csv
+        #print self.csv
 
         # Setup dimensions of game
         self.pixel_size = pixel_size
@@ -197,7 +197,7 @@ class Game():
                 qSnek.startEpisode()
 
                 while not self.game_over:
-                    print "do a move!"
+                    # print "do a move!"
                     # TO DO
                     # if qsnek.isintraining == true, do not display screen. make go faster.
 
@@ -212,23 +212,28 @@ class Game():
                     # else:
                         # for team in self.state.teams:
                         #     print "Team " + str(team.id) + ":", team.getScore()
-
+                    start = time.time()
                     currentState = self.state.deepCopy()
+                    end = time.time()
+                    print end - start
 
                     # Iterate through each snake and tell it to move
+                    
                     for team in self.state.teams:
                         for snake in team.snakes:
-                            print snake.position
-                            print snake.head
                             if snake.isAlive():
-                                snake.move(snake.getAction(currentState, self.functionId))
+                                snake.move(snake.getAction(currentState))
+                    
+                           
 
                     # Update the game state based on snake movements (check collisions)
                     self.state.update()
+                    
 
                     # update Q values for snek
                     # observation function??
                     qSnek.observationFunction(self.state)
+                    
 
                     if not qSnek.isAlive():
                        self.game_over == True  
@@ -242,6 +247,7 @@ class Game():
                         pass
                     # delay between timesteps
                     # sleep(speed)
+                   
 
                 qSnek.stopEpisode()
                 games_run += 1
@@ -270,8 +276,10 @@ class Game():
                     # for team in self.state.teams:
                     #     print "Team " + str(team.id) + ":", team.getScore()
 
+                
                 currentState = self.state.deepCopy()
-
+                
+                print end - start
                 # Iterate through each snake and tell it to move
                 for team in self.state.teams:
                     for snake in team.snakes:
@@ -288,7 +296,7 @@ class Game():
                     #print team.getScore()
                     pass
                 # delay between timesteps
-                sleep(speed)
+                time.sleep(speed)
 
             # Game is Over. Display game over graphic that makes the player sad
             print "Game Over! Sad!"
