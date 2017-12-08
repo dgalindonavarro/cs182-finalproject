@@ -7,12 +7,12 @@ from util import removeAdjacent
 
 class GameState():
 
+    # Equality check
     def __eq__( self, other ):
         """
         Allows two states to be compared.
         """
         if other == None: return False
-        # TODO Check for type of other
         if not len(self.teams) == len(other.teams): return False
         for team in xrange(len(self.teams)):
             if not len(self.teams[team].snakes) == len(other.teams[team].snakes): return False
@@ -21,6 +21,7 @@ class GameState():
         if not self.food == other.food: return False
         return True
 
+    # Make class hashable for q learning state value pairs
     def __hash__( self ):
         """
         Allows states to be keys of dictionaries.
@@ -30,16 +31,9 @@ class GameState():
                 int(hash(team))
             except TypeError, e:
                 print e
-                #hash(state)
-            # for j, snake in enumerate( team.snakes ):
-            #     try:
-            #         int(hash(team))
-            #     except TypeError, e:
-            #         print e
-            #         #hash(state)
         return int((hash(tuple(self.teams)) + 13*hash(tuple(self.food))) % 1048575 )
 
-
+    # Initialize instance with give attributes
     def __init__( self, num_teams, team_colors, width, height, obstacles=[]):
 
         self.width = width
@@ -77,7 +71,6 @@ class GameState():
 
     # Update snake position list based on index
     def updateSnake(self, team_id, snake_id, index):
-        ### Maybe add an is Dead check to other functions later? ###
         self.teams[team_id].updateSnake(snake_id, index)
 
     # Reset all snakes currently in GameState to a given length, isAlive state, random position
@@ -159,6 +152,8 @@ class GameState():
     def addRandoSnake(self, width, height, length, team_id, agent):
         # Get index of snake
         snek_id = len(self.teams[team_id].snakes)
+
+        # Initialize snake to be the right kind of agent
         if agent == "U":
             snek = UserAgent(snek_id, team_id, (11, 102, 35))
         elif agent == "M":
@@ -170,12 +165,10 @@ class GameState():
         elif agent == "R":
             snek = ReflexAgent(snek_id, team_id, self.team_colors[team_id])
         elif agent == 'Q':
-            #snek = QLearningAgent(snek_id, team_id, self.team_colors[team_id])
-            snek = ApproximateQAgent(snek_id, team_id, self.team_colors[team_id])
+            snek = QLearningAgent(snek_id, team_id, self.team_colors[team_id])
         head = None
 
         # Get list of positions that are next to or on top of any other snakes as to avoid placing new head there
-        # COULD BE RE-WRITTEN MORE EFFICIENTLY WITH SELF.LEGALPOSITIONS
         taken_positions = []
         list_of_snakes = []
         for team in self.teams:
@@ -330,11 +323,12 @@ class GameState():
         successor.update()
         return successor
 
+    # Execute a moven given and agent and an action, return old properties
+    # so we can undo it
     def executeMove(self, snake_id, team_id, action):
         snake = self.teams[team_id].snakes[snake_id]
         direction = copy.deepcopy(snake.direction)
         position = copy.deepcopy(snake.position)
-        # length = copy.deepcopy(snake.length)
         eaten = copy.deepcopy(snake.eaten)
         add_tail = copy.deepcopy(snake.add_tail)
         food = copy.deepcopy(self.food)
@@ -342,6 +336,9 @@ class GameState():
         self.update()
         return direction, position, eaten, add_tail, food
 
+    # Take the previous attributes and undo the move 
     def undoMove(self, snake_id, team_id, direction, position, eaten, add_tail, food):
+        # Undo the move on given agent
         self.teams[team_id].snakes[snake_id].undoMove(direction, position, eaten, add_tail)
+        # Reset the food
         self.food = food

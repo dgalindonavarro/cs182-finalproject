@@ -16,15 +16,15 @@ from time import sleep
 class Game():
 
     # Initialize the game screen
-    def __init__(self, width, height, teams=2, snakes=1, speed=0.5, user=False, agent="M", functionId=1, no_graphics=False, csv=False, qLearning=False, episodes=100, pixel_size=10):
+    def __init__(self, width, height, teams=2, snakes=1, speed=0.0, user=False, agent="A", functionId=1, no_graphics=False, csv=False, qLearning=False, episodes=100, pixel_size=10):
 
+        # Store attributes from command line
         self.csv = csv == "True"
         self.qLearning = qLearning == "True"
         self.episodes = int(episodes)
         self.no_graphics = no_graphics == "True"
         self.agent = agent
         self.functionId = int(functionId)
-        #print self.csv
 
         # Setup dimensions of game
         self.pixel_size = pixel_size
@@ -38,26 +38,32 @@ class Game():
         self.state = GameState(int(teams), team_colors, width, height)
         self.game_over = False
 
-        # create some random snakes
+        # create snakes and initialize them to be the right type of agent
         for team in xrange(int(teams)):
             for snake in xrange(int(snakes)):
                 if snake == 0 and team == 0 and user == "True":
                     agent_type = "U"
-                elif qLearning:
+                elif self.qLearning:
                     if snake == 0 and team == 0:
                         agent_type = "Q"
                     else:
                         # type of adversaries to train/employ Q learning against
                         agent_type = "R"
+                # If not qlearning then team 0 snakes are of type agent from command line
                 elif team == 0:
                     agent_type = agent
+                # Team 1 snakes are reflex (greedy) agents
                 else:
                     agent_type = "R"
+
+                # Add snake to correct team with correct agent type
                 self.state.addRandoSnake(width, height, 5, team, agent_type)
 
+        # If no_graphics is false, initialize game screen
         if not self.no_graphics:
             pygame.init()
 
+            # Load static images once
             self.loadImages()
 
             # Create the screen with black background
@@ -70,6 +76,7 @@ class Game():
         # Run Game
         self.run(float(speed))
 
+    # Load images used in game play
     def loadImages(self):
         self.apple = pygame.image.load("images/apple.png")
         self.apple = pygame.transform.scale(self.apple, (self.pixel_size, self.pixel_size))
@@ -169,22 +176,18 @@ class Game():
 
         otherScore.remove(maxScore)
 
+        # Write to correct csv file (THIS CODE IS FOR 2v2 DATA)
         if self.csv:
             fd = open('data/' + self.agent + '_Data_Eval' + str(self.functionId) + '.csv','a')
             newLine = "\n" + str(len(self.state.teams)) + "," + str(len(self.state.teams[0].snakes)) + "," + winner  + "," + str(maxScore) + "," + str(otherScore[0])
             fd.write(newLine)
             fd.close()
-            # fd = open('data/' + self.agent + '_1v1_Data_Eval' + str(self.functionId) + '.csv','a')
-            # newLine = "\n" + str(len(self.state.teams)) + "," + str(len(self.state.teams[0].snakes)) + "," + winner  + "," + str(maxScore) + "," + str(otherScore[0])
-            # fd.write(newLine)
-            # fd.close()
 
         return winner, maxScore        
 
     def run( self, speed ):
         """
         Main control loop for game play. 
-        (probably will be a while game.state = not_done loop or something)
         """
 
         if self.qLearning:
@@ -195,36 +198,31 @@ class Game():
             qSnek = self.state.teams[0].snakes[0]
             print 'Qsnek is beginning up to %d episodes of Training' % (qSnek.numTraining)
 
+            # Run correct number of episodes
             while games_run < self.episodes:
                 print "Game Number", games_run
                 qSnek.startEpisode()
 
+                # Run until game is over
                 while not self.game_over:
-                    # print "do a move!"
-                    # TO DO
-                    # if qsnek.isintraining == true, do not display screen. make go faster.
 
                     if not self.no_graphics:
-                        #frances' gui saver
+                        # gui saver
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
                                 raise SystemExit
 
                         # Update the game screen
                         self.updateDisplay()
-                    # else:
-                        # for team in self.state.teams:
-                        #     print "Team " + str(team.id) + ":", team.getScore()
-                    
-                    # currentState = self.state.deepCopy()
 
                     # Iterate through each snake and tell it to move
                     
                     actions = {}
                     for team in self.state.teams:
                         for snake in team.snakes:
-                            if snake.isAlive() and snake.head == qSnek.head:
-                                actions[(team.id, snake.id)] = snake.getAction(self.state.deepCopy())
+                            # If the snake is a qlearning snake, deepcopy the state
+                            if snake.isAlive() and team.id == 0 and snake.id == 0:
+                                actions[(team.id, snake.id)] = snake.getAction(self.state.deepCopy(), self.functionId)
                             elif snake.isAlive():
                                 actions[(team.id, snake.id)] = snake.getAction(self.state, self.functionId)
                     
@@ -239,7 +237,6 @@ class Game():
                     
 
                     # update Q values for snek
-                    # observation function??
                     qSnek.observationFunction(self.state)
                     
                     # check if one team has been eliminated
@@ -249,18 +246,11 @@ class Game():
                     if not qSnek.isAlive():
                        self.game_over = True  
 
-                    # Update each teams' score
-                    for team in self.state.teams:
-                        #print team.getScore()
-                        pass
                     # delay between timesteps
                     sleep(speed)
-                   
-                print "Dict Length: ", len(qSnek.qValues)
+
                 qSnek.stopEpisode()
-                winner = self.getWinner()
-                # print("Winner: Team " + winner[0])
-                # print("Score: " + str(winner[1])) 
+                winner = self.getWinner() 
                 games_run += 1
 
                 # RESET GAME STATE AS IT WAS INITIALLY, place the snakes on the board randomly to begin again
@@ -269,29 +259,25 @@ class Game():
                 self.game_over = False
                 self.state.addRandoFood()
 
-            # print "printing q snake values"
-            # print qSnek.qValues
+            print "printing q snake values"
+            print qSnek.qValues
             return
 
         # Just run the game one time with non-q learning training and implementation
         else: 
             while not self.game_over:
                 if not self.no_graphics:
-                    #frances' gui saver
+                    # gui saver
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             raise SystemExit
 
                     # Update the game screen
                     self.updateDisplay()
-                # else:
-                    # for team in self.state.teams:
-                    #     print "Team " + str(team.id) + ":", team.getScore()
 
                 
                 currentState = self.state.deepCopy()
                 
-                # print end - start
                 # Iterate through each snake and tell it to move
                 for team in self.state.teams:
                     for snake in team.snakes:
@@ -303,10 +289,6 @@ class Game():
                 # check if one team has been eliminated
                 self.gameOver()
 
-                # Update each teams' score
-                for team in self.state.teams:
-                    #print team.getScore()
-                    pass
                 # delay between timesteps
                 sleep(speed)
 

@@ -21,6 +21,7 @@ from Snake import Snake
 
 class Agent(Snake):
 
+	# Pick the correct evaluation function
 	def evaluationFunction(self, gameState, functionId):
 		if functionId == 1:
 			return self.evaluationFunction1(gameState)
@@ -29,7 +30,7 @@ class Agent(Snake):
 		elif functionId == 3:
 			return self.evaluationFunction3(gameState)
 
-
+	# Simple evaluation function (same as greedy)
 	def evaluationFunction1(self, gameState):
 		snake = gameState.teams[self.team_id].snakes[self.id]
 
@@ -57,12 +58,16 @@ class Agent(Snake):
 
 			return (score * 100) - foodDistance
 
+	# Second evaluation function that takes into account score differentials, total food distances
+	# across teammates and opponents, number of snakes alive on each team
 	def evaluationFunction2(self, gameState):
 
 		score = 0
 		totalFoodDistance = 0
 		snakesAlive = 0
 		teamSnakesAlive = 0
+
+		# Iterate through teams to get differentials
 		for team in gameState.teams:
 			if team.id == self.team_id:
 				score += team.getScore()
@@ -84,13 +89,9 @@ class Agent(Snake):
 						totalFoodDistance -= foodDistance
 						snakesAlive -= 1
 
+		# If whole team is dead, return largest negative integer
 		if teamSnakesAlive == 0:
 			return -sys.maxint - 1
-
-		tailDistance = 0
-		if gameState.teams[self.team_id].snakes[self.id].isAlive():
-			head = gameState.teams[self.team_id].snakes[self.id].head
-			tail = gameState.teams[self.team_id].snakes[self.id].position[-1]
 		
 		return (score * 1000) - (totalFoodDistance * 10) + (snakesAlive * 5000)
 
@@ -104,6 +105,8 @@ class Agent(Snake):
 		distanceToSelf = 0
 		length = 0
 		distanceToWall = 0
+
+		# Iterate through teams to get differentials, get length and wall distance for correct self
 		for team in gameState.teams:
 			if team.id == self.team_id:
 				score += team.getScore()
@@ -130,6 +133,7 @@ class Agent(Snake):
 						totalFoodDistance -= foodDistance
 						opponentsAlive -=1
 
+		# Encourage more active killing of opponents and surviving of teammates
 		if opponentsAlive == 0 and teamSnakesAlive > 0:
 			snakeAlive = 10
 		elif opponentsAlive == 0 and score >= 0:
@@ -137,11 +141,13 @@ class Agent(Snake):
 		elif teamSnakesAlive == 0:
 			return -sys.maxint - 1
 
+		# Get average distance to own tail
 		snakesAlive = teamSnakesAlive - opponentsAlive
 		if length > 0:
 			distanceToSelf = distanceToSelf * 1.0 / length
 		else:
 			distanceToSelf = 0
+
 		return (score * 10000) - (totalFoodDistance * 100) + (snakesAlive * 50000) + (distanceToSelf * 50) + (distanceToWall * 50)
 
 class ReflexAgent(Snake):
@@ -165,7 +171,6 @@ class ReflexAgent(Snake):
 		some Directions.X for some X in the set {North, South, West, East, Stop}
 		"""
 		# Collect legal moves and successor states
-		# legalMoves = gameState.getLegalActions()
 		actions = self.getActions()
 
 		# Choose one of the best actions
@@ -243,12 +248,18 @@ class MinimaxAgent(Agent):
 		"""
 		"*** YOUR CODE HERE ***"
 		self.functionId = functionId
+
+		# Create list of all agents
 		self.agent_list = [(self.id, self.team_id)]
 		for team in gameState.teams:
 			for snake in team.snakes:
 				if not (snake.id == self.id and team.id == self.team_id):
 					self.agent_list.append((snake.id, team.id))
+
+		# Multiply depth by number of agents
 		self.depth = 2 * len(self.agent_list)
+
+		# Get an action from minimax tree
 		action = self.value(gameState, 0, 0)
 		return action
 
@@ -266,14 +277,21 @@ class MinimaxAgent(Agent):
 		act = None
 		actions = self.getActions()
 		for action in actions:
+			# Execute move and store old attributes to undo
 			direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+			
+			# Get value of next state
 			newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
+
+			# Undo the move after we have the value
 			state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
+			# If we've gotten back to the original function call, return an action instead of a value
 			if depth == 0:
 				if v < newVal:
 					v = newVal
 					act = action
+			# Otherwise, we just need a value
 			else:
 				v = max(v, newVal)
 		if depth == 0:
@@ -284,8 +302,13 @@ class MinimaxAgent(Agent):
 		v = float("inf")
 		actions = self.getActions()
 		for action in actions:
+			# Execute move and store old attributes to undo
 			direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+			
+			# Get value of next state
 			newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
+			
+			# Undo the move after we have the value
 			state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
 			v = min(v, newVal)
@@ -315,13 +338,19 @@ class AlphaBetaAgent(Agent):
 		"""
 		"*** YOUR CODE HERE ***"
 		self.functionId = functionId
+
+		# Create list of all agents
 		self.agent_list = [(self.id, self.team_id)]
 		for team in gameState.teams:
 			for snake in team.snakes:
 				if snake.isAlive():
 					if not (snake.id == self.id and team.id == self.team_id):
 						self.agent_list.append((snake.id, team.id))
+
+		# Multiply depth by number of agents
 		self.depth = 2 * len(self.agent_list)
+
+		# Get an action from minimax tree
 		action = self.value(gameState, -float("inf") - 1, float("inf"), 0, 0)
 		return action
 
@@ -339,16 +368,24 @@ class AlphaBetaAgent(Agent):
 		act = None
 		actions = self.getActions()
 		for action in actions:
+			# Execute move and store old attributes to undo
 			direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+			
+			# Get value of next state
 			newVal = self.value(state, alpha, beta, (index + 1) % len(self.agent_list), depth + 1)
+			
+			# Undo the move after we have the value
 			state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
+			# If we've gotten back to the original function call, return an action instead of a value
 			if depth == 0:
 				if v < newVal:
 					v = newVal
 					act = action
 			else:
 				v = max(v, newVal)
+
+			# Pruning
 			if v > beta:
 			  return v
 			alpha = max(alpha, v)
@@ -360,11 +397,18 @@ class AlphaBetaAgent(Agent):
 		v = float("inf")
 		actions = self.getActions()
 		for action in actions:
+			# Execute move and store old attributes to undo
 			direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+			
+			# Get value of next state
 			newVal = self.value(state, alpha, beta, (index + 1) % len(self.agent_list), depth + 1)
+			
+			# Undo the move after we have the value
 			state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 			
 			v = min(v, newVal)
+
+			# Pruning
 			if v < alpha:
 			  return v
 			beta = min(beta, v)
@@ -385,12 +429,18 @@ class ExpectimaxAgent(Agent):
 		"""
 		"*** YOUR CODE HERE ***"
 		self.functionId = functionId
+
+		# Create list of all agents
 		self.agent_list = [(self.id, self.team_id)]
 		for team in gameState.teams:
 			for snake in team.snakes:
 				if not (snake.id == self.id and team.id == self.team_id):
 					self.agent_list.append((snake.id, team.id))
+
+		# Multiply depth by number of agents
 		self.depth = 2 * len(self.agent_list)
+
+		# Get an action from expectimax tree
 		action = self.value(gameState, 0, 0)
 		return action
 
@@ -408,10 +458,16 @@ class ExpectimaxAgent(Agent):
 		act = None
 		actions = self.getActions()
 		for action in actions:
+			# Execute move and store old attributes to undo
 			direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+			
+			# Get value of next state
 			newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
+			
+			# Undo the move after we have the value
 			state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
 
+			# If we've gotten back to the original function call, return an action instead of a value
 			if depth == 0:
 				if v < newVal:
 					v = newVal
@@ -426,9 +482,18 @@ class ExpectimaxAgent(Agent):
 		v = 0
 		actions = self.getActions()
 		for action in actions:
+			# Execute move and store old attributes to undo
 			direction, position, eaten, add_tail, food = state.executeMove(self.agent_list[index][0], self.agent_list[index][1], action)
+			
+			# Get value of next state
 			newVal = self.value(state, (index + 1) % len(self.agent_list), depth + 1)
+			
+			# Undo the move after we have the value
 			state.undoMove(self.agent_list[index][0], self.agent_list[index][1], direction, position, eaten, add_tail, food)
+			
+			# Calculate probability of action
 			p = 1.0 / len(actions)
+
+			# Added weighted value to total value
 			v += newVal * p
 		return v
